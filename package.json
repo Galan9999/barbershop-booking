@@ -14,7 +14,8 @@
     "test:smoke": "./scripts/with-local-db.sh ./scripts/smoke-test.sh",
     "db:push": "./scripts/db-push.sh",
     "check:connection": "node scripts/check-connection.mjs",
-    "dev:local": "./scripts/with-local-db.sh next dev"
+    "dev:local": "./scripts/with-local-db.sh next dev",
+    "db:sql": "./scripts/print-schema.sh"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.49.4",

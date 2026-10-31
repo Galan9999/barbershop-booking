@@ -51,8 +51,11 @@ tráfico; vuelve solo con una visita.
    DATABASE_URL='postgresql://postgres.xxxx:TU_PASSWORD@aws-0-eu-west-1.pooler.supabase.com:5432/postgres' npm run db:push
    ```
 
-   Alternativa sin terminal: abre **SQL Editor** en Supabase y pega el contenido de
-   `supabase/migrations/20261031120000_create_appointments.sql`.
+   Alternativa sin terminal: `npm run db:sql` imprime todas las migraciones
+   concatenadas y en orden. Copia la salida entera, pégala en el **SQL Editor** de
+   Supabase y pulsa Run. Se puede ejecutar todo de una vez; lo que no se puede es
+   alterar el orden, porque la segunda migración concede permisos sobre la tabla que
+   crea la primera.
 
 4. Comprueba en **Table Editor** que existe `appointments` y que el índice
    `appointments_active_slot_uq` aparece en **Database → Indexes**. Ese índice es lo
