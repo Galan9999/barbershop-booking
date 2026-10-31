@@ -33,6 +33,7 @@ Checklist obligatorio si el cambio toca `/api/reserve`, `/api/cancel`, migracion
 
 ### G6 · Migraciones
 - Migración nueva (nunca editada) en `supabase/migrations/`, aditiva, con constraints nombrados y reversión documentada.
+- **Aplicada en Supabase ANTES de hacer push**: el push despliega solo, y el código nuevo contra el esquema viejo rompe producción.
 - Si cambia el esquema: tipos TS regenerados/actualizados en el mismo cambio.
 
 ### G7 · Coste $0

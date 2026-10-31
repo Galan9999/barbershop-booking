@@ -4,7 +4,26 @@ paths:
   - "src/modules/**/infrastructure/*.repository.ts"
   - "src/shared/infrastructure/supabase/**"
 ---
-# Base de datos y migraciones (R7, S10, G6)
+# Base de datos y migraciones
+
+## Orden obligatorio: migrar ANTES de desplegar
+
+Vercel despliega solo al hacer push a `main`. Si el código nuevo espera columnas
+que todavía no existen en Supabase, producción se rompe en cuanto termina el build.
+
+El orden es siempre:
+
+1. Aplicar la migración en Supabase (`npm run db:push`, o pegar `npm run db:sql`).
+2. Comprobar con `npm run check:connection`.
+3. Entonces, y solo entonces, `git push`.
+
+Para que esto no obligue a coordinar al segundo, las migraciones deben ser
+compatibles hacia atrás siempre que se pueda: añadir columnas opcionales primero,
+desplegar, y eliminar las viejas en una migración posterior. Cuando no sea posible
+(como al partir una columna en dos), migra primero y acepta que el despliegue
+anterior deje de funcionar unos segundos.
+
+## Reglas generales (R7, S10, G6)
 
 - SQL solo vía migraciones versionadas en `supabase/migrations/<timestamp>_<desc>.sql`. Nunca editar una migración ya aplicada.
 - Migraciones aditivas y seguras en caliente (expand/contract para renombrados). Cada una documenta propósito y reversión en comentario.
