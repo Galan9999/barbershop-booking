@@ -1,18 +1,29 @@
 import { NextResponse } from 'next/server';
+import type { BookingErrorCode } from '@/lib/domain/errors';
 
+/** Transport-level codes, on top of the domain ones. Both are API contract. */
 export type ApiErrorCode =
+  | BookingErrorCode
   | 'VALIDATION_ERROR'
-  | 'SLOT_TAKEN'
-  | 'OUTSIDE_OPENING_HOURS'
-  | 'TOO_SOON'
-  | 'TOO_FAR_AHEAD'
-  | 'TOKEN_NOT_FOUND'
-  | 'ALREADY_CANCELLED'
-  | 'APPOINTMENT_IN_PAST'
   | 'METHOD_NOT_ALLOWED'
   | 'INTERNAL';
 
-/** Stable error envelope: { error: { code, message } }. Codes are API contract. */
+/** HTTP status for each domain failure: the single place that mapping lives. */
+const DOMAIN_STATUS: Record<BookingErrorCode, number> = {
+  SLOT_TAKEN: 409,
+  OUTSIDE_OPENING_HOURS: 422,
+  TOO_SOON: 422,
+  TOO_FAR_AHEAD: 422,
+  TOKEN_NOT_FOUND: 404,
+  APPOINTMENT_IN_PAST: 410,
+  STORAGE_FAILURE: 500,
+};
+
+export function statusForDomainError(code: BookingErrorCode): number {
+  return DOMAIN_STATUS[code];
+}
+
+/** Stable error envelope: { error: { code, message } }. */
 export function jsonError(
   code: ApiErrorCode,
   message: string,

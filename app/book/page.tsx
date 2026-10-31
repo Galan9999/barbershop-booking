@@ -1,5 +1,5 @@
 import { BUSINESS_NAME } from '@/lib/config';
-import { getAvailability } from '@/lib/availability';
+import { getAvailability } from '@/lib/services/availability-service';
 import { BookingForm } from './booking-form';
 
 export const dynamic = 'force-dynamic';

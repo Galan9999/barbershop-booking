@@ -1,0 +1,31 @@
+import 'server-only';
+import { Resend } from 'resend';
+import { env } from '@/lib/env';
+import type { EmailTransport, OutgoingEmail } from './types';
+
+export function createResendTransport(): EmailTransport {
+  const client = new Resend(env.RESEND_API_KEY);
+  return {
+    async send(email: OutgoingEmail) {
+      try {
+        const { error } = await client.emails.send({
+          from: env.EMAIL_FROM,
+          to: email.to,
+          subject: email.subject,
+          html: email.html,
+          text: email.text,
+        });
+        if (error) {
+          console.error('[email] resend rejected the message', { name: error.name });
+          return { sent: false };
+        }
+        return { sent: true };
+      } catch (err) {
+        console.error('[email] resend send failed', {
+          cause: err instanceof Error ? err.message : 'unknown',
+        });
+        return { sent: false };
+      }
+    },
+  };
+}

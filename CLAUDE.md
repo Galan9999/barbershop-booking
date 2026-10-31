@@ -77,17 +77,24 @@ app/
   cancel/[token]/page.tsx   confirmación de cancelación
   cancel/[token]/cancel-button.tsx  ('use client')
 lib/
+  domain/                   reglas puras y errores de negocio (sin I/O)
+  repositories/             único acceso a la base de datos
+  services/                 casos de uso: reservar, cancelar, disponibilidad
+  api/                      envoltura HTTP y mapeo de errores
   env.ts                    variables de entorno validadas con zod (server-only)
   config.ts                 barberos, horario, duración de slot
   time.ts                   helpers de zona horaria y formato
   google-calendar.ts        constructor de URL de plantilla
-  api/response.ts           errores JSON estandarizados
+  api/response.ts           errores JSON estandarizados y mapeo a HTTP
+  api/handle-route.ts       envoltura común de Route Handlers
   validation/appointment.ts esquemas zod de entrada
   supabase/admin.ts         cliente service role
   supabase/types.ts         tipos de la BBDD (regenerar con `supabase gen types`)
   email/resend.ts           envío
   email/templates/          plantillas HTML + texto plano
 supabase/migrations/        SQL versionado
+scripts/dev-db.sh           Postgres + PostgREST locales (sin Docker)
+scripts/smoke-test.sh       batería end-to-end contra la base local
 docs/                       SKILLS y HOOKS (importados arriba), índices RULES/COMMANDS
 .claude/rules/              reglas por path (se cargan al tocar sus ficheros)
 .claude/skills/             comandos slash (/db-schema, /api-route, ...)

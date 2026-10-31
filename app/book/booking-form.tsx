@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import type { DayAvailability } from '@/lib/availability';
+import type { DayAvailability } from '@/lib/services/availability-service';
 
 interface BookingFormProps {
   days: DayAvailability[];
