@@ -11,15 +11,26 @@ interface LocalParts {
 
 const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
+const partsFormatters = new Map<string, Intl.DateTimeFormat>();
+
+function getPartsFormatter(timeZone: string): Intl.DateTimeFormat {
+  let fmt = partsFormatters.get(timeZone);
+  if (!fmt) {
+    fmt = new Intl.DateTimeFormat('en-US', {
+      timeZone,
+      weekday: 'short',
+      hour: 'numeric',
+      minute: 'numeric',
+      hour12: false,
+    });
+    partsFormatters.set(timeZone, fmt);
+  }
+  return fmt;
+}
+
 /** Decompose an instant into wall-clock parts in the given IANA timezone. */
 export function getLocalParts(date: Date, timeZone: string): LocalParts {
-  const parts = new Intl.DateTimeFormat('en-US', {
-    timeZone,
-    weekday: 'short',
-    hour: 'numeric',
-    minute: 'numeric',
-    hour12: false,
-  }).formatToParts(date);
+  const parts = getPartsFormatter(timeZone).formatToParts(date);
   const get = (type: string) => parts.find((p) => p.type === type)?.value ?? '';
   return {
     weekday: WEEKDAYS.indexOf(get('weekday')),
@@ -68,4 +79,34 @@ export function isWithinOpeningHours(
   };
   const startMin = s.hour * 60 + s.minute;
   return startMin >= toMin(day.open) && startMin + durationMinutes <= toMin(day.close);
+}
+
+/** Short day label in the business timezone, e.g. "vie 7 nov". */
+export function formatDayLabel(date: Date, timeZone: string): string {
+  return new Intl.DateTimeFormat('es-ES', {
+    timeZone,
+    weekday: 'short',
+    day: 'numeric',
+    month: 'short',
+  }).format(date);
+}
+
+/** "HH:mm" in the business timezone. */
+export function formatTimeLabel(date: Date, timeZone: string): string {
+  return new Intl.DateTimeFormat('es-ES', {
+    timeZone,
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  }).format(date);
+}
+
+/** Calendar day key in the business timezone, e.g. "2026-11-07". */
+export function formatDayKey(date: Date, timeZone: string): string {
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(date);
 }

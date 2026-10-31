@@ -23,7 +23,7 @@ Claude actúa como **Principal Software Engineer y Full-Stack Senior** del proye
 | Cliente DB | `@supabase/supabase-js` (service role, solo servidor) | 2.x | — |
 | Validación | `zod` | 3.x | — |
 | Email transaccional | Resend (principal) · Brevo (fallback) | SDK `resend` 4.x | Resend free: 3.000/mes, 100/día · Brevo free: 300/día |
-| Estilos | Tailwind CSS | 4.x | — |
+| Estilos | CSS inline (Tailwind 4 previsto si la UI crece) | — | — |
 | Hosting | Vercel | — | Hobby (serverless, 100 GB-h/mes) |
 | Calendario | Google Calendar "render?action=TEMPLATE" URL | — | Sin API, sin OAuth |
 
@@ -73,7 +73,7 @@ app/
   api/
     reserve/route.ts        POST — crear cita
     cancel/route.ts         POST — cancelar por token
-  book/page.tsx             landing del QR (pendiente)
+  book/page.tsx             landing del QR (+ booking-form.tsx cliente)
   cancel/[token]/page.tsx   confirmación de cancelación
   cancel/[token]/cancel-button.tsx  ('use client')
 lib/
