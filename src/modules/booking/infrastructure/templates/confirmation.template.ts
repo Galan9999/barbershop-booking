@@ -75,13 +75,28 @@ export function renderConfirmationHtml(data: ConfirmationEmailData): string {
         </td></tr>
         <tr><td align="center" style="padding-top:24px;">
           <a href="${safe.googleCalendarUrl}"
-             style="display:inline-block;background:#7c2d12;color:#ffffff;text-decoration:none;font-size:15px;padding:12px 24px;border-radius:10px;">
+             style="display:inline-block;background:#7c2d12;color:#ffffff;text-decoration:none;font-size:15px;font-weight:bold;padding:14px 24px;border-radius:10px;">
             Añadir a Google Calendar
           </a>
         </td></tr>
-        <tr><td align="center" style="font-size:13px;color:#6b6257;padding-top:24px;line-height:1.5;">
-          ¿No puedes venir?
-          <a href="${safe.cancelUrl}" style="color:#6b6257;">Cancela tu cita aquí</a>.
+        <!-- Cancelling must be as findable as booking. A grey link in grey text
+             at the end of the message reads as fine print and gets missed. -->
+        <tr><td style="padding-top:24px;">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+            <tr><td style="border-top:1px solid #e4ded4;padding-top:20px;" align="center">
+              <p style="margin:0 0 12px;font-size:14px;color:#1c1917;">
+                ¿No puedes venir?
+              </p>
+              <a href="${safe.cancelUrl}"
+                 style="display:inline-block;border:1px solid #b42318;color:#b42318;text-decoration:none;font-size:14px;font-weight:bold;padding:11px 22px;border-radius:10px;">
+                Cancelar mi cita
+              </a>
+              <p style="margin:12px 0 0;font-size:12px;color:#6b6257;line-height:1.5;">
+                Si el botón no funciona, copia este enlace:<br>
+                <span style="color:#6b6257;word-break:break-all;">${safe.cancelUrl}</span>
+              </p>
+            </td></tr>
+          </table>
         </td></tr>
       </table>
     </td></tr>

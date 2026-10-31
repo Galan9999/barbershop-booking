@@ -15,7 +15,8 @@
     "db:push": "./scripts/db-push.sh",
     "check:connection": "node scripts/check-connection.mjs",
     "dev:local": "./scripts/with-local-db.sh next dev",
-    "db:sql": "./scripts/print-schema.sh"
+    "db:sql": "./scripts/print-schema.sh",
+    "email:preview": "node scripts/preview-email.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.49.4",
