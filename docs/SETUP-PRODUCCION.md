@@ -64,21 +64,24 @@ tráfico; vuelve solo con una visita.
 
 ---
 
-## 3. Rellenar `.env.local`
+## 3. Rellenar las claves
+
+Hay dos entornos preparados en `env/`, y un conmutador entre ellos:
+
+| Comando | Qué activa |
+|---|---|
+| `npm run env:local` | Postgres + PostgREST en tu máquina, correos a `.dev-emails/` |
+| `npm run env:remote` | Supabase + Resend reales |
+
+Edita `env/remote.env` y sustituye los tres `PEGA_AQUI_...` por tus valores. Después:
 
 ```bash
-NEXT_PUBLIC_APP_URL=http://localhost:3000
-BUSINESS_TIMEZONE=Europe/Madrid
-
-SUPABASE_URL=https://xxxxxxxxxxxx.supabase.co
-SUPABASE_SERVICE_ROLE_KEY=eyJ...
-
-EMAIL_TRANSPORT=resend
-RESEND_API_KEY=re_...
-EMAIL_FROM="Barbería Central <onboarding@resend.dev>"
+npm run env:remote
+npm run check:connection
 ```
 
-`.env.local` está en `.gitignore`: no se sube nunca.
+La carpeta `env/` está en `.gitignore`, igual que `.env.local`: las claves no llegan
+nunca a un commit. Para volver al entorno local, `npm run env:local`.
 
 ---
 

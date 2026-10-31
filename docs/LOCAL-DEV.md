@@ -45,3 +45,14 @@ cancelación, doble clic y liberación del hueco.
 
 > `npm run test:smoke` **borra la base de datos** al empezar. Ejecútalo solo contra el
 > stack local, nunca con `.env.local` apuntando a Supabase.
+
+## Alternar entre local y remoto
+
+```bash
+npm run env:local      # Postgres + PostgREST en esta máquina
+npm run env:remote     # Supabase + Resend reales
+npm run check:connection
+```
+
+Los dos ficheros viven en `env/`, fuera de git. Reinicia el servidor de desarrollo
+después de cambiar de entorno.

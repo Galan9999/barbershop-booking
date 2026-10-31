@@ -13,7 +13,9 @@
     "db:psql": "./scripts/dev-db.sh psql",
     "test:smoke": "./scripts/smoke-test.sh",
     "db:push": "./scripts/db-push.sh",
-    "check:connection": "node scripts/check-connection.mjs"
+    "check:connection": "node scripts/check-connection.mjs",
+    "env:local": "./scripts/use-env.sh local",
+    "env:remote": "./scripts/use-env.sh remote"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.49.4",
