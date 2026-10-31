@@ -16,11 +16,23 @@ npm run check:connection
 **Plan gratuito**: 500 MB, 2 proyectos activos. Pausa el proyecto tras 7 días sin
 tráfico; vuelve solo con una visita.
 
-1. Entra en <https://supabase.com/dashboard> y crea un proyecto.
+1. Entra en <https://supabase.com/dashboard> y crea un proyecto. No hace falta ningún
+   repositorio: un proyecto Supabase es solo una base de datos alojada.
    - **Region**: `West EU (Ireland)` o `Central EU (Frankfurt)`, lo más cerca de tus
      clientes.
    - **Database password**: genera una y guárdala. La necesitas en el paso 3 y no se
      puede volver a ver.
+   - **Security**, las tres casillas:
+
+     | Opción | Marcar | Por qué |
+     |---|---|---|
+     | Enable Data API | **Sí** | `supabase-js` habla con la API REST. Sin esto no funciona nada |
+     | Automatically expose new tables | **No** | Concedería acceso a los roles `anon` y `authenticated` en cada tabla nueva. Nuestras migraciones conceden permisos solo a `service_role` |
+     | Enable automatic RLS | **Sí** | Activa seguridad a nivel de fila en toda tabla nueva. Nuestra migración ya lo hace explícitamente; esto cubre cualquier tabla futura que se cree sin acordarse |
+
+     La migración `20261031180000_grant_service_role_access.sql` existe precisamente
+     para que el esquema no dependa de esas casillas: concede a `service_role` lo que
+     necesita, y nada a `anon` ni a `authenticated`.
 2. Copia dos valores de **Project Settings → API**:
    - **Project URL** → `SUPABASE_URL`
    - **service_role / secret** → `SUPABASE_SERVICE_ROLE_KEY`
