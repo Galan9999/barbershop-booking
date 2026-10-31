@@ -8,3 +8,4 @@ node_modules/
 qr/
 .vercel
 vercel-env.txt
+.env*

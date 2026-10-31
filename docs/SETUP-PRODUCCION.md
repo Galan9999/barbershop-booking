@@ -123,6 +123,10 @@ Abre <http://localhost:3000/book>, reserva con tu propio email, y comprueba que:
 
 ## 5. Desplegar en Vercel
 
+> **Estado actual**: desplegado en <https://barbershop-booking-nine.vercel.app>,
+> con las siete variables configuradas en producción.
+
+
 **Plan Hobby**: gratuito para proyectos personales.
 
 1. Sube el repositorio a GitHub e impórtalo en <https://vercel.com/new>.
