@@ -48,15 +48,21 @@ check() {
   else echo "  FAIL  $1 (expected $3, got $2)"; fail=$((fail+1)); fi
 }
 post() { curl -s -o /dev/null -w "%{http_code}" -X POST "$BASE$1" -H 'Content-Type: application/json' -d "$2"; }
-booking() { echo "{\"client_name\":\"$1\",\"client_email\":\"$2\",\"date_time\":\"$3\",\"barber_name\":\"$4\"}"; }
+booking() {
+  # $1 first name, $2 surname, $3 email, $4 slot ISO, $5 barber
+  echo "{\"client_first_name\":\"$1\",\"client_last_name\":\"$2\",\"client_email\":\"$3\",\"client_phone\":\"600123456\",\"date_time\":\"$4\",\"barber_name\":\"$5\"}"
+}
 
 echo "Booking API"
-check "valid booking -> 201" "$(post /api/reserve "$(booking 'Ana Pérez' ana@example.com "$S1" Carlos)")" 201
-check "same client retry -> 200 idempotent" "$(post /api/reserve "$(booking 'Ana Pérez' ana@example.com "$S1" Carlos)")" 200
-check "other client, slot taken -> 409" "$(post /api/reserve "$(booking 'Otra Persona' otra@example.com "$S1" Carlos)")" 409
-check "closed on Sunday -> 422" "$(post /api/reserve "$(booking 'Test User' t@example.com 2026-11-08T10:00:00.000Z Carlos)")" 422
-check "invalid email -> 422" "$(post /api/reserve "$(booking 'Test User' mal "$S2" Carlos)")" 422
-check "unaligned slot -> 422" "$(post /api/reserve "$(booking 'Test User' t@example.com 2026-11-04T09:15:00.000Z Carlos)")" 422
+check "valid booking -> 201" "$(post /api/reserve "$(booking Ana Pérez ana@example.com "$S1" Carlos)")" 201
+check "same client retry -> 200 idempotent" "$(post /api/reserve "$(booking Ana Pérez ana@example.com "$S1" Carlos)")" 200
+check "other client, slot taken -> 409" "$(post /api/reserve "$(booking Otra Persona otra@example.com "$S1" Carlos)")" 409
+check "closed on Sunday -> 422" "$(post /api/reserve "$(booking Test User t@example.com 2026-11-08T10:00:00.000Z Carlos)")" 422
+check "invalid email -> 422" "$(post /api/reserve "$(booking Test User mal "$S2" Carlos)")" 422
+check "missing phone -> 422" "$(post /api/reserve '{"client_first_name":"Test","client_last_name":"User","client_email":"t@example.com","date_time":"'"$S2"'","barber_name":"Carlos"}')" 422
+check "phone too short -> 422" "$(post /api/reserve '{"client_first_name":"Test","client_last_name":"User","client_email":"t@example.com","client_phone":"123","date_time":"'"$S2"'","barber_name":"Carlos"}')" 422
+check "no surname -> 422" "$(post /api/reserve '{"client_first_name":"Test","client_last_name":"","client_email":"t@example.com","client_phone":"600123456","date_time":"'"$S2"'","barber_name":"Carlos"}')" 422
+check "unaligned slot -> 422" "$(post /api/reserve "$(booking Test User t@example.com 2026-11-04T09:15:00.000Z Carlos)")" 422
 check "unknown token -> 404" "$(post /api/cancel '{"token":"00000000-0000-4000-8000-000000000000"}')" 404
 check "GET on cancel -> 405" "$(curl -s -o /dev/null -w '%{http_code}' "$BASE/api/cancel")" 405
 
@@ -66,7 +72,7 @@ echo "Concurrency"
 race_pids=()
 for i in $(seq 1 10); do
   curl -s -o /dev/null -X POST "$BASE/api/reserve" -H 'Content-Type: application/json' \
-    -d "$(booking "Cliente $i" "c$i@example.com" "$S2" Miguel)" &
+    -d "$(booking "Cliente$i" Apellido "c$i@example.com" "$S2" Miguel)" &
   race_pids+=("$!")
 done
 wait "${race_pids[@]}"
@@ -77,7 +83,7 @@ echo "Cancellation"
 TOKEN=$(psql -d barbershop_dev -tAc "select cancel_token from appointments where client_email='ana@example.com' and status='confirmed';")
 check "cancel -> 200" "$(post /api/cancel "{\"token\":\"$TOKEN\"}")" 200
 check "double click idempotent -> 200" "$(post /api/cancel "{\"token\":\"$TOKEN\"}")" 200
-check "slot freed, bookable again -> 201" "$(post /api/reserve "$(booking 'Luis Gómez' luis@example.com "$S1" Carlos)")" 201
+check "slot freed, bookable again -> 201" "$(post /api/reserve "$(booking Luis Gómez luis@example.com "$S1" Carlos)")" 201
 
 echo "$pass passed, $fail failed"
 [ "$fail" -eq 0 ]

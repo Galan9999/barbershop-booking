@@ -18,14 +18,18 @@ import type { AppointmentRow } from '@/shared/types/database.types';
  * above.
  */
 
+/* eslint-disable-next-line max-len -- supabase-js infers the row type from this
+   literal, so it cannot be split or concatenated. */
 const ENTITY_COLUMNS =
-  'id, client_name, client_email, date_time, barber_name, status, cancel_token';
+  'id, client_first_name, client_last_name, client_email, client_phone, date_time, barber_name, status, cancel_token';
 
 type EntityRow = Pick<
   AppointmentRow,
   | 'id'
-  | 'client_name'
+  | 'client_first_name'
+  | 'client_last_name'
   | 'client_email'
+  | 'client_phone'
   | 'date_time'
   | 'barber_name'
   | 'status'
@@ -35,8 +39,10 @@ type EntityRow = Pick<
 function toEntity(row: EntityRow): Appointment {
   return new Appointment({
     id: row.id,
-    clientName: row.client_name,
+    clientFirstName: row.client_first_name,
+    clientLastName: row.client_last_name,
     clientEmail: row.client_email,
+    clientPhone: row.client_phone,
     startsAt: new Date(row.date_time),
     barberName: row.barber_name,
     status: row.status,
@@ -54,8 +60,10 @@ export class SupabaseAppointmentRepository implements AppointmentRepository {
     const { data: row, error } = await supabaseAdmin
       .from('appointments')
       .insert({
-        client_name: data.clientName,
+        client_first_name: data.clientFirstName,
+        client_last_name: data.clientLastName,
         client_email: data.clientEmail,
+        client_phone: data.clientPhone,
         date_time: data.startsAt.toISOString(),
         barber_name: data.barberName,
       })

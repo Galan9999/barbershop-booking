@@ -55,6 +55,10 @@ export default async function CancelPage({
                 <dt>A nombre de</dt>
                 <dd>{appointment.clientName}</dd>
               </div>
+              <div className={styles.row}>
+                <dt>Teléfono</dt>
+                <dd>{appointment.clientPhone}</dd>
+              </div>
             </dl>
             <CancelBookingButton token={token} />
           </>

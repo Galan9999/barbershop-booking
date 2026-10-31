@@ -88,15 +88,38 @@ export function BookingForm({
           <span className={styles.stepNumber}>4</span> Tus datos
         </h2>
         <div className={styles.fields}>
+          <div className={styles.fieldRow}>
+            <Field
+              label="Nombre"
+              name="client_first_name"
+              autoComplete="given-name"
+              required
+              minLength={2}
+              maxLength={60}
+              value={form.firstName}
+              onChange={(event) => form.setFirstName(event.target.value)}
+            />
+            <Field
+              label="Apellidos"
+              name="client_last_name"
+              autoComplete="family-name"
+              required
+              minLength={2}
+              maxLength={80}
+              value={form.lastName}
+              onChange={(event) => form.setLastName(event.target.value)}
+            />
+          </div>
           <Field
-            label="Nombre y apellido"
-            name="client_name"
-            autoComplete="name"
+            label="Teléfono"
+            name="client_phone"
+            type="tel"
+            autoComplete="tel"
+            inputMode="tel"
             required
-            minLength={2}
-            maxLength={100}
-            value={form.clientName}
-            onChange={(event) => form.setClientName(event.target.value)}
+            hint="Por si necesitamos avisarte de algún cambio."
+            value={form.clientPhone}
+            onChange={(event) => form.setClientPhone(event.target.value)}
           />
           <Field
             label="Email"

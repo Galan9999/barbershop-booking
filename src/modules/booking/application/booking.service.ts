@@ -57,7 +57,7 @@ export class BookingService {
     // stored booking, so its outcome is reported rather than thrown.
     const { sent } = await this.deps.notifier.sendConfirmation({
       to: appointment.clientEmail,
-      clientName: appointment.clientName,
+      clientName: appointment.fullName,
       barberName: appointment.barberName,
       formattedDateTime: this.formatDateTime(appointment.startsAt),
       googleCalendarUrl: this.buildCalendarUrl(appointment),
@@ -98,7 +98,8 @@ export class BookingService {
     const appointment = await this.deps.repository.findByCancelToken(token);
     if (!appointment) return null;
     return {
-      clientName: appointment.clientName,
+      clientName: appointment.fullName,
+      clientPhone: appointment.clientPhone,
       barberName: appointment.barberName,
       formattedDateTime: this.formatDateTime(appointment.startsAt),
       status: appointment.status,
@@ -133,7 +134,7 @@ export class BookingService {
       title: `${this.deps.businessName} — ${appointment.barberName}`,
       start: appointment.startsAt,
       end: appointment.endsAt(APPOINTMENT_MINUTES),
-      details: `Cita con ${appointment.barberName}. Reserva a nombre de ${appointment.clientName}.`,
+      details: `Cita con ${appointment.barberName}. Reserva a nombre de ${appointment.fullName}.`,
       location: this.deps.businessAddress,
     });
   }
@@ -145,7 +146,7 @@ export class BookingService {
     return {
       appointment: {
         id: appointment.id,
-        client_name: appointment.clientName,
+        client_name: appointment.fullName,
         date_time: appointment.startsAt.toISOString(),
         barber_name: appointment.barberName,
         status: 'confirmed',

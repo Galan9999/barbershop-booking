@@ -14,8 +14,10 @@ export function POST(request: Request): Promise<NextResponse> {
     reserveSchema,
     async (input) => {
       const confirmation = await getBookingService().createBooking({
-        clientName: input.client_name,
+        clientFirstName: input.client_first_name,
+        clientLastName: input.client_last_name,
         clientEmail: input.client_email,
+        clientPhone: input.client_phone,
         startsAt: input.date_time,
         barberName: input.barber_name,
       });

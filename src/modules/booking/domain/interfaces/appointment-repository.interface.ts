@@ -8,8 +8,10 @@ import type { TimeSlot } from '@/modules/booking/domain/value-objects/time-slot'
  */
 
 export interface NewAppointmentData {
-  clientName: string;
+  clientFirstName: string;
+  clientLastName: string;
   clientEmail: string;
+  clientPhone: string;
   startsAt: Date;
   barberName: string;
 }

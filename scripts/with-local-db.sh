@@ -36,4 +36,7 @@ export EMAIL_FROM="Barbería Central <citas@example.com>"
 export USING_LOCAL_STACK="1"
 
 cd "$PROJECT_DIR"
+# Make the project's binaries reachable: npm adds this when it runs a script,
+# but not when this wrapper is invoked directly.
+export PATH="$PROJECT_DIR/node_modules/.bin:$PATH"
 exec "$@"

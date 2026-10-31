@@ -6,8 +6,10 @@ import type { BookingConfirmationDto } from '@/modules/booking/application/dto/b
  */
 
 export interface ReserveRequest {
-  client_name: string;
+  client_first_name: string;
+  client_last_name: string;
   client_email: string;
+  client_phone: string;
   date_time: string;
   barber_name: string;
 }

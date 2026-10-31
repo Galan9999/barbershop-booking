@@ -12,8 +12,10 @@ export type AppointmentStatus = 'confirmed' | 'cancelled';
 
 export interface AppointmentProps {
   id: string;
-  clientName: string;
+  clientFirstName: string;
+  clientLastName: string;
   clientEmail: string;
+  clientPhone: string;
   startsAt: Date;
   barberName: string;
   status: AppointmentStatus;
@@ -22,8 +24,10 @@ export interface AppointmentProps {
 
 export class Appointment {
   readonly id: string;
-  readonly clientName: string;
+  readonly clientFirstName: string;
+  readonly clientLastName: string;
   readonly clientEmail: string;
+  readonly clientPhone: string;
   readonly startsAt: Date;
   readonly barberName: string;
   readonly status: AppointmentStatus;
@@ -31,12 +35,19 @@ export class Appointment {
 
   constructor(props: AppointmentProps) {
     this.id = props.id;
-    this.clientName = props.clientName;
+    this.clientFirstName = props.clientFirstName;
+    this.clientLastName = props.clientLastName;
     this.clientEmail = props.clientEmail;
+    this.clientPhone = props.clientPhone;
     this.startsAt = props.startsAt;
     this.barberName = props.barberName;
     this.status = props.status;
     this.cancelToken = props.cancelToken;
+  }
+
+  /** Display name. Built here so no caller re-invents the joining rule. */
+  get fullName(): string {
+    return `${this.clientFirstName} ${this.clientLastName}`.trim();
   }
 
   get isConfirmed(): boolean {

@@ -9,8 +9,10 @@ export type AppointmentStatus = 'confirmed' | 'cancelled';
 
 export type AppointmentRow = {
   id: string;
-  client_name: string;
+  client_first_name: string;
+  client_last_name: string;
   client_email: string;
+  client_phone: string;
   date_time: string; // timestamptz as ISO string
   barber_name: string;
   status: AppointmentStatus;
@@ -20,8 +22,10 @@ export type AppointmentRow = {
 };
 
 export type AppointmentInsert = {
-  client_name: string;
+  client_first_name: string;
+  client_last_name: string;
   client_email: string;
+  client_phone: string;
   date_time: string;
   barber_name: string;
 };

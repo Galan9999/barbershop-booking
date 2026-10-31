@@ -9,9 +9,27 @@ import { BARBERS } from '@/shared/config/business.config';
  * application boundary; entities describe what is true inside it.
  */
 
+/**
+ * Accepts Spanish and international formats: "+34 600 00 00 00",
+ * "600 000 000", "(+34) 600-000-000". Stored as typed, minus surrounding
+ * whitespace: the shop reads it, no system parses it.
+ */
+const phoneSchema = z
+  .string()
+  .trim()
+  .min(7)
+  .max(24)
+  .regex(/^\+?[0-9 ().-]+$/, 'Introduce un teléfono válido')
+  .refine(
+    (value) => (value.match(/[0-9]/g) ?? []).length >= 7,
+    'El teléfono necesita al menos 7 dígitos',
+  );
+
 export const reserveSchema = z.object({
-  client_name: z.string().trim().min(2).max(100),
+  client_first_name: z.string().trim().min(2).max(60),
+  client_last_name: z.string().trim().min(2).max(80),
   client_email: z.string().trim().toLowerCase().email().max(254),
+  client_phone: phoneSchema,
   /** ISO 8601 with offset or Z, e.g. "2026-11-07T10:30:00+01:00". */
   date_time: z
     .string()
@@ -51,6 +69,7 @@ export interface CancellationDto {
 /** Read model for the cancellation page: no entity leaves the application layer. */
 export interface AppointmentViewDto {
   clientName: string;
+  clientPhone: string;
   barberName: string;
   formattedDateTime: string;
   status: 'confirmed' | 'cancelled';

@@ -21,8 +21,10 @@ export interface BookingFormState {
   barber: string | undefined;
   dayKey: string | undefined;
   slotIso: string | undefined;
-  clientName: string;
+  firstName: string;
+  lastName: string;
   clientEmail: string;
+  clientPhone: string;
   errorMessage: string | undefined;
   confirmation: BookingConfirmationDto | undefined;
   selectedDay: DayAvailabilityDto | undefined;
@@ -32,8 +34,10 @@ export interface BookingFormState {
   selectBarber: (barber: string) => void;
   selectDay: (dayKey: string) => void;
   selectSlot: (iso: string) => void;
-  setClientName: (value: string) => void;
+  setFirstName: (value: string) => void;
+  setLastName: (value: string) => void;
   setClientEmail: (value: string) => void;
+  setClientPhone: (value: string) => void;
   submit: () => Promise<void>;
 }
 
@@ -52,8 +56,10 @@ export function useBookingForm({
   const [barber, setBarber] = useState<string | undefined>(initialBarber);
   const [dayKey, setDayKey] = useState<string | undefined>(availability.days[0]?.dayKey);
   const [slotIso, setSlotIso] = useState<string>();
-  const [clientName, setClientName] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [clientEmail, setClientEmail] = useState('');
+  const [clientPhone, setClientPhone] = useState('');
   const [errorMessage, setErrorMessage] = useState<string>();
   const [confirmation, setConfirmation] = useState<BookingConfirmationDto>();
   const [takenSinceLoad, setTakenSinceLoad] = useState<Record<string, string[]>>({});
@@ -95,12 +101,17 @@ export function useBookingForm({
     setErrorMessage(undefined);
   }, []);
 
+  // Mirrors the server schema closely enough to avoid a pointless round trip,
+  // but the API stays the authority: this only decides when to enable submit.
+  const hasEnoughDigits = (clientPhone.match(/[0-9]/g) ?? []).length >= 7;
   const canSubmit =
     status === 'editing' &&
     Boolean(barber) &&
     Boolean(slotIso) &&
-    clientName.trim().length >= 2 &&
-    clientEmail.includes('@');
+    firstName.trim().length >= 2 &&
+    lastName.trim().length >= 2 &&
+    clientEmail.includes('@') &&
+    hasEnoughDigits;
 
   const submit = useCallback(async () => {
     if (!barber || !slotIso || status === 'submitting') return;
@@ -108,8 +119,10 @@ export function useBookingForm({
     setErrorMessage(undefined);
 
     const result = await reserveBooking({
-      client_name: clientName.trim(),
+      client_first_name: firstName.trim(),
+      client_last_name: lastName.trim(),
       client_email: clientEmail.trim(),
+      client_phone: clientPhone.trim(),
       date_time: slotIso,
       barber_name: barber,
     });
@@ -131,15 +144,17 @@ export function useBookingForm({
       return;
     }
     setErrorMessage(result.message);
-  }, [barber, clientEmail, clientName, slotIso, status]);
+  }, [barber, clientEmail, clientPhone, firstName, lastName, slotIso, status]);
 
   return {
     status,
     barber,
     dayKey,
     slotIso,
-    clientName,
+    firstName,
+    lastName,
     clientEmail,
+    clientPhone,
     errorMessage,
     confirmation,
     selectedDay,
@@ -149,8 +164,10 @@ export function useBookingForm({
     selectBarber,
     selectDay,
     selectSlot,
-    setClientName,
+    setFirstName,
+    setLastName,
     setClientEmail,
+    setClientPhone,
     submit,
   };
 }

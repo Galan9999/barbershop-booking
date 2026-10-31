@@ -48,3 +48,15 @@
   font-size: var(--text-sm);
   text-align: center;
 }
+
+.fieldRow {
+  display: grid;
+  gap: var(--space-4);
+}
+
+/* Name and surname side by side once there is room for both. */
+@media (min-width: 26rem) {
+  .fieldRow {
+    grid-template-columns: 1fr 1fr;
+  }
+}
