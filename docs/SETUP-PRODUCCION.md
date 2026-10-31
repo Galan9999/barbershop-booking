@@ -83,22 +83,17 @@ tráfico; vuelve solo con una visita.
 
 ## 3. Rellenar las claves
 
-Hay dos entornos preparados en `env/`, y un conmutador entre ellos:
-
-| Comando | Qué activa |
-|---|---|
-| `npm run env:local` | Postgres + PostgREST en tu máquina, correos a `.dev-emails/` |
-| `npm run env:remote` | Supabase + Resend reales |
-
-Edita `env/remote.env` y sustituye los tres `PEGA_AQUI_...` por tus valores. Después:
+Hay **un solo fichero**: `.env.local`, con tus credenciales reales. Cópialo de
+`.env.example` si no existe, rellénalo y comprueba:
 
 ```bash
-npm run env:remote
 npm run check:connection
 ```
 
-La carpeta `env/` está en `.gitignore`, igual que `.env.local`: las claves no llegan
-nunca a un commit. Para volver al entorno local, `npm run env:local`.
+Está en `.gitignore`, así que las claves no llegan nunca a un commit.
+
+Para trabajar contra la base local no hace falta tocar nada: `npm run dev:local` pone
+sus propias variables por encima, sin modificar `.env.local`.
 
 ---
 
@@ -118,8 +113,8 @@ Abre <http://localhost:3000/book>, reserva con tu propio email, y comprueba que:
 3. El enlace de cancelación del correo abre la página de cancelación y, al confirmar,
    el hueco vuelve a estar libre en `/book`.
 
-> No ejecutes `npm run test:smoke` contra Supabase: ese script **borra la base** al
-> empezar. Está pensado solo para el stack local.
+> `npm run test:smoke` **borra la base** al empezar, así que es autocontenido: usa la
+> base local y levanta su propio servidor en otro puerto. No puede tocar Supabase.
 
 ---
 
