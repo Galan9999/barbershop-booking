@@ -33,12 +33,16 @@ tráfico; vuelve solo con una visita.
      La migración `20261031180000_grant_service_role_access.sql` existe precisamente
      para que el esquema no dependa de esas casillas: concede a `service_role` lo que
      necesita, y nada a `anon` ni a `authenticated`.
-2. Copia dos valores de **Project Settings → API**:
-   - **Project URL** → `SUPABASE_URL`
-   - **service_role / secret** → `SUPABASE_SERVICE_ROLE_KEY`
+2. Copia dos valores de **Project Settings → API Keys**:
+   - **Project URL** → `SUPABASE_URL` (`https://xxxx.supabase.co`)
+   - **secret key** → `SUPABASE_SERVICE_ROLE_KEY` (empieza por `sb_secret_`)
 
-   > La `anon` key no sirve aquí: con RLS activado y sin políticas no puede leer nada.
-   > La `service_role` es secreta y **nunca** lleva el prefijo `NEXT_PUBLIC_`.
+   > Supabase ofrece dos claves. La **publishable** (`sb_publishable_…`) es la pública
+   > y no sirve aquí: con RLS activado y sin políticas no puede leer nada. Hace falta
+   > la **secret**. En proyectos antiguos esas dos claves se llamaban `anon` y
+   > `service_role`, y eran JWT que empezaban por `eyJ`.
+   >
+   > La clave secreta **nunca** lleva el prefijo `NEXT_PUBLIC_`.
 
 3. Aplica el esquema. En **Project Settings → Database → Connection string → URI**
    copia la cadena y sustituye `[YOUR-PASSWORD]` por la del paso 1:
@@ -61,7 +65,8 @@ tráfico; vuelve solo con una visita.
 **Plan gratuito**: 3.000 correos al mes, 100 al día.
 
 1. Crea la cuenta en <https://resend.com> y ve a **API Keys → Create API Key**.
-   - Permiso **Sending access** basta.
+   - Permiso **Sending access** basta. Con ese permiso la clave no puede listar
+     dominios, y `npm run check:connection` lo refleja como válida igualmente.
    - Cópiala al momento: solo se muestra una vez. → `RESEND_API_KEY`
 2. Elige remitente:
    - **Para probar ya, sin dominio**: usa `EMAIL_FROM="Barbería Central <onboarding@resend.dev>"`.

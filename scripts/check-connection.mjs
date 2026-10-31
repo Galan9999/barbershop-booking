@@ -60,8 +60,14 @@ for (const key of [
   record(key, Boolean(value), value ? (isSecret ? fingerprint(value) : value) : 'sin valor');
 }
 
-if (env.SUPABASE_SERVICE_ROLE_KEY?.includes('NEXT_PUBLIC')) {
-  console.error('\nLa service role key nunca debe llevar prefijo NEXT_PUBLIC_.');
+const supabaseKey = env.SUPABASE_SERVICE_ROLE_KEY ?? '';
+if (supabaseKey.startsWith('sb_publishable_') || supabaseKey.startsWith('eyJ') === false && supabaseKey.includes('publishable')) {
+  console.error(
+    '\n  ERROR: SUPABASE_SERVICE_ROLE_KEY contiene una clave "publishable".\n' +
+    '  Esa es la clave pública (sustituye a la antigua anon) y no puede leer nada\n' +
+    '  con RLS activado. Necesitas la clave secreta:\n' +
+    '  Supabase > Project Settings > API Keys > secret (sb_secret_...).',
+  );
 }
 
 console.log('\nSupabase');
@@ -109,6 +115,16 @@ if (env.EMAIL_TRANSPORT === 'console') {
       }
       if (verified.length === 0) {
         console.log('        Sin dominio verificado solo puedes enviarte correos a ti.');
+      }
+    } else if (response.status === 401) {
+      const body = await response.json().catch(() => ({}));
+      if (body.name === 'restricted_api_key') {
+        // A send-only key cannot list domains. That is the recommended setup,
+        // and the error itself proves the key is valid.
+        record('clave de Resend', true, 'válida, con permisos solo de envío');
+        console.log('        No se pueden listar dominios con esta clave; es lo esperado.');
+      } else {
+        record('clave de Resend', false, 'HTTP 401: la clave no es válida');
       }
     } else {
       record('clave de Resend', false, `HTTP ${response.status}`);
