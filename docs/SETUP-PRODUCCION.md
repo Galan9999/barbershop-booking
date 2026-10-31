@@ -130,8 +130,13 @@ Abre <http://localhost:3000/book>, reserva con tu propio email, y comprueba que:
    `NEXT_PUBLIC_APP_URL` apuntando a la URL real del despliegue. Ese valor es el que
    acaba en los enlaces de cancelación del correo: si está mal, los enlaces no
    funcionan.
-3. Tras el primer despliegue, genera el QR apuntando a `https://tu-app.vercel.app/book`
-   (o `.../book?barber=Carlos` para un código por barbero).
+3. Tras el primer despliegue, genera los códigos QR con la URL real:
+
+   ```bash
+   npm run qr -- https://tu-app.vercel.app --barbers
+   ```
+
+   Detalles de impresión y tamaños en `docs/QR.md`.
 4. Repite la prueba del punto 4 contra la URL de producción antes de imprimir nada.
 
 ### Mantener Supabase despierto
