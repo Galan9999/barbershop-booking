@@ -131,6 +131,22 @@ docs/                                  SKILLS y HOOKS (importados), LOCAL-DEV
   sin añadir dependencias.
 - **DTOs en la frontera.** Las entidades no salen de la capa de aplicación.
 
-## 5. Variables de entorno
+## 5. Estado y pendientes
 
-Ver [.env.example](.env.example). Todas se validan al arrancar en `shared/config/env.ts`; una variable ausente hace fallar el build, no una request.
+`docs/ESTADO.md` recoge qué está en producción, qué falta y por qué. Lo más
+importante: **los clientes todavía no reciben el correo de confirmación**, porque el
+remitente de Resend es el de pruebas y solo entrega a la cuenta propia. Se arregla
+verificando un dominio.
+
+Las decisiones de arquitectura con su contexto están en `docs/decisiones/`.
+
+## 6. Variables de entorno
+
+Ver [.env.example](.env.example) y `docs/PERSONALIZAR.md`.
+
+Se validan al arrancar, en `shared/config/env.ts` (servicios) y
+`shared/config/business.config.ts` (negocio). Una variable ausente o incoherente hace
+fallar el build con un mensaje que dice cuál, no una petición en producción.
+
+Todo lo que distingue a una peluquería de otra es una variable `BUSINESS_*`: nombre,
+peluqueros, horarios, duraciones, colores. Instalar en un sitio nuevo no toca código.
