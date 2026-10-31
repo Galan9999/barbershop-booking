@@ -1,8 +1,8 @@
-import type { BookingConfirmation as Confirmation } from '@/modules/booking/application/booking.service';
+import type { BookingConfirmationDto } from '@/modules/booking/application/dto/booking.dto';
 import styles from './BookingConfirmation.module.css';
 
 interface BookingConfirmationProps {
-  confirmation: Confirmation;
+  confirmation: BookingConfirmationDto;
   businessAddress: string;
 }
 

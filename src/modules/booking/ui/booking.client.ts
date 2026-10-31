@@ -1,4 +1,4 @@
-import type { BookingConfirmation } from '@/modules/booking/application/booking.service';
+import type { BookingConfirmationDto } from '@/modules/booking/application/dto/booking.dto';
 
 /**
  * Browser-side access to the booking API. Keeping fetch here means the hook
@@ -13,7 +13,7 @@ export interface ReserveRequest {
 }
 
 export type ReserveResult =
-  | { ok: true; confirmation: BookingConfirmation }
+  | { ok: true; confirmation: BookingConfirmationDto }
   | { ok: false; code: string; message: string };
 
 const NETWORK_ERROR_MESSAGE = 'Sin conexión. Comprueba tu red e inténtalo de nuevo.';
@@ -26,7 +26,7 @@ export async function reserveBooking(request: ReserveRequest): Promise<ReserveRe
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(request),
     });
-    const body = (await response.json()) as BookingConfirmation & {
+    const body = (await response.json()) as BookingConfirmationDto & {
       error?: { code: string; message: string };
     };
 

@@ -2,17 +2,17 @@
 
 import { useCallback, useMemo, useState } from 'react';
 import type {
-  Availability,
-  DayAvailability,
-  SlotAvailability,
+  AvailabilityDto,
+  DayAvailabilityDto,
+  SlotAvailabilityDto,
 } from '@/modules/booking/application/availability.service';
-import type { BookingConfirmation } from '@/modules/booking/application/booking.service';
+import type { BookingConfirmationDto } from '@/modules/booking/application/dto/booking.dto';
 import { reserveBooking } from '@/modules/booking/ui/booking.client';
 
 export type BookingFormStatus = 'editing' | 'submitting' | 'confirmed';
 
 interface UseBookingFormOptions {
-  availability: Availability;
+  availability: AvailabilityDto;
   initialBarber?: string;
 }
 
@@ -24,11 +24,11 @@ export interface BookingFormState {
   clientName: string;
   clientEmail: string;
   errorMessage: string | undefined;
-  confirmation: BookingConfirmation | undefined;
-  selectedDay: DayAvailability | undefined;
+  confirmation: BookingConfirmationDto | undefined;
+  selectedDay: DayAvailabilityDto | undefined;
   availableDayKeys: string[];
   canSubmit: boolean;
-  isSlotTaken: (slot: SlotAvailability) => boolean;
+  isSlotTaken: (slot: SlotAvailabilityDto) => boolean;
   selectBarber: (barber: string) => void;
   selectDay: (dayKey: string) => void;
   selectSlot: (iso: string) => void;
@@ -55,7 +55,7 @@ export function useBookingForm({
   const [clientName, setClientName] = useState('');
   const [clientEmail, setClientEmail] = useState('');
   const [errorMessage, setErrorMessage] = useState<string>();
-  const [confirmation, setConfirmation] = useState<BookingConfirmation>();
+  const [confirmation, setConfirmation] = useState<BookingConfirmationDto>();
   const [takenSinceLoad, setTakenSinceLoad] = useState<Record<string, string[]>>({});
 
   const availableDayKeys = useMemo(
@@ -69,7 +69,7 @@ export function useBookingForm({
   );
 
   const isSlotTaken = useCallback(
-    (slot: SlotAvailability): boolean => {
+    (slot: SlotAvailabilityDto): boolean => {
       if (!barber) return false;
       return (
         slot.takenBy.includes(barber) || (takenSinceLoad[slot.iso] ?? []).includes(barber)

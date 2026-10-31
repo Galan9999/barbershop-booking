@@ -1,151 +1,159 @@
-import 'server-only';
 import type {
-  NewAppointment,
-  StoredAppointment,
-} from '@/modules/booking/domain/appointment.types';
+  AppointmentViewDto,
+  BookingConfirmationDto,
+  CancellationDto,
+} from '@/modules/booking/application/dto/booking.dto';
 import { BookingError } from '@/modules/booking/domain/booking-errors';
 import { assertBookable } from '@/modules/booking/domain/booking-rules';
-import { sendConfirmationEmail } from '@/modules/booking/infrastructure/confirmation-email';
-import {
-  cancelByToken,
-  findByToken,
-  findConfirmedBySlot,
-  insertAppointment,
-  SlotTakenError,
-} from '@/modules/booking/infrastructure/appointment.repository';
-import {
-  APPOINTMENT_MINUTES,
-  BUSINESS_ADDRESS,
-  BUSINESS_NAME,
-} from '@/shared/config/business.config';
-import { env } from '@/shared/config/env';
+import type { Appointment } from '@/modules/booking/domain/entities/appointment.entity';
+import type {
+  AppointmentRepository,
+  NewAppointmentData,
+} from '@/modules/booking/domain/interfaces/appointment-repository.interface';
+import { SlotAlreadyTakenError } from '@/modules/booking/domain/interfaces/appointment-repository.interface';
+import type { BookingNotifier } from '@/modules/booking/domain/interfaces/booking-notifier.interface';
+import type { Clock } from '@/modules/booking/domain/interfaces/clock.interface';
+import { TimeSlot } from '@/modules/booking/domain/value-objects/time-slot';
+import { APPOINTMENT_MINUTES } from '@/shared/config/business.config';
 import { buildGoogleCalendarUrl } from '@/shared/utils/calendar/google-calendar-url';
-import { addMinutes, formatFullDateTime } from '@/shared/utils/datetime';
+import { formatFullDateTime } from '@/shared/utils/datetime';
 
-/**
- * Booking use cases. This layer orchestrates rules, persistence and side
- * effects, and knows nothing about HTTP: it takes plain input and either
- * returns a result or throws a BookingError.
- */
-
-/** What the API returns on a successful booking. */
-export interface BookingConfirmation {
-  appointment: {
-    id: string;
-    client_name: string;
-    date_time: string;
-    barber_name: string;
-    status: 'confirmed';
-  };
-  formatted_date_time: string;
-  google_calendar_url: string;
-  email_sent: boolean;
-  /** True when this request re-confirmed a booking the client already had. */
-  idempotent_replay: boolean;
+/** Everything the use cases need from the outside world, injected explicitly. */
+export interface BookingServiceDependencies {
+  repository: AppointmentRepository;
+  notifier: BookingNotifier;
+  clock: Clock;
+  timeZone: string;
+  appUrl: string;
+  businessName: string;
+  businessAddress: string;
 }
 
-export async function createBooking(
-  input: NewAppointment,
-  now: Date = new Date(),
-): Promise<BookingConfirmation> {
-  assertBookable(input.startsAt, now, env.BUSINESS_TIMEZONE);
+/**
+ * Booking use cases. Depends only on domain ports and plain configuration, so
+ * it can be exercised with fakes and knows nothing about HTTP, SQL or email
+ * providers. Assembled in `booking.module.ts`.
+ */
+export class BookingService {
+  private readonly deps: BookingServiceDependencies;
 
-  let stored: StoredAppointment;
-  try {
-    stored = await insertAppointment(input);
-  } catch (error) {
-    if (!(error instanceof SlotTakenError)) throw error;
-    // Either we lost the race, or the same client double-submitted. Only the
-    // second case is safe to report as success, so check who owns the slot.
-    const existing = await findConfirmedBySlot(input.barberName, input.startsAt);
-    if (existing?.clientEmail === input.clientEmail) {
-      return presentBooking(existing, { emailSent: false, idempotentReplay: true });
+  constructor(dependencies: BookingServiceDependencies) {
+    this.deps = dependencies;
+  }
+
+  async createBooking(data: NewAppointmentData): Promise<BookingConfirmationDto> {
+    const now = this.deps.clock.now();
+    assertBookable(data.startsAt, now, this.deps.timeZone);
+
+    let appointment: Appointment;
+    try {
+      appointment = await this.deps.repository.create(data);
+    } catch (error) {
+      if (!(error instanceof SlotAlreadyTakenError)) throw error;
+      return this.resolveLostRace(data);
+    }
+
+    // Deliberately after the write: a failed notification must never undo a
+    // stored booking, so its outcome is reported rather than thrown.
+    const { sent } = await this.deps.notifier.sendConfirmation({
+      to: appointment.clientEmail,
+      clientName: appointment.clientName,
+      barberName: appointment.barberName,
+      formattedDateTime: this.formatDateTime(appointment.startsAt),
+      googleCalendarUrl: this.buildCalendarUrl(appointment),
+      cancelUrl: this.buildCancelUrl(appointment.cancelToken),
+    });
+
+    return this.toConfirmationDto(appointment, { emailSent: sent, idempotentReplay: false });
+  }
+
+  async cancelBooking(token: string): Promise<CancellationDto> {
+    const now = this.deps.clock.now();
+    const didCancel = await this.deps.repository.cancel(token, now);
+
+    const appointment = await this.deps.repository.findByCancelToken(token);
+    if (!appointment) {
+      throw new BookingError('TOKEN_NOT_FOUND', 'This cancellation link is not valid.');
+    }
+
+    if (didCancel) {
+      return {
+        cancelled: true,
+        appointment: {
+          id: appointment.id,
+          barber_name: appointment.barberName,
+          formatted_date_time: this.formatDateTime(appointment.startsAt),
+        },
+      };
+    }
+
+    // Nothing changed: the entity itself says whether that is fine or an error.
+    const problem = appointment.reasonCancellationIsImpossible(now);
+    if (problem) throw problem;
+    return { cancelled: true, already_cancelled: true };
+  }
+
+  /** Read model for the cancellation page. Entities never leave this layer. */
+  async getAppointmentByToken(token: string): Promise<AppointmentViewDto | null> {
+    const appointment = await this.deps.repository.findByCancelToken(token);
+    if (!appointment) return null;
+    return {
+      clientName: appointment.clientName,
+      barberName: appointment.barberName,
+      formattedDateTime: this.formatDateTime(appointment.startsAt),
+      status: appointment.status,
+      canBeCancelled: appointment.canBeCancelledAt(this.deps.clock.now()),
+    };
+  }
+
+  /**
+   * A unique-constraint rejection means either a genuine race or the same
+   * client submitting twice. Only the second is safe to report as success.
+   */
+  private async resolveLostRace(data: NewAppointmentData): Promise<BookingConfirmationDto> {
+    const existing = await this.deps.repository.findConfirmedAt(
+      new TimeSlot(data.barberName, data.startsAt),
+    );
+    if (existing?.belongsTo(data.clientEmail)) {
+      return this.toConfirmationDto(existing, { emailSent: false, idempotentReplay: true });
     }
     throw new BookingError('SLOT_TAKEN', 'That slot has just been booked. Pick another one.');
   }
 
-  // Deliberately after the write: a failed email must never undo a stored
-  // booking, so its outcome is reported rather than thrown.
-  const { sent } = await sendConfirmationEmail({
-    to: stored.clientEmail,
-    clientName: stored.clientName,
-    barberName: stored.barberName,
-    businessName: BUSINESS_NAME,
-    businessAddress: BUSINESS_ADDRESS,
-    formattedDateTime: formatFullDateTime(stored.startsAt, env.BUSINESS_TIMEZONE),
-    googleCalendarUrl: buildCalendarUrlFor(stored),
-    cancelUrl: buildCancelUrl(stored.cancelToken),
-  });
+  private formatDateTime(instant: Date): string {
+    return formatFullDateTime(instant, this.deps.timeZone);
+  }
 
-  return presentBooking(stored, { emailSent: sent, idempotentReplay: false });
-}
+  private buildCancelUrl(cancelToken: string): string {
+    return `${this.deps.appUrl}/cancel/${cancelToken}`;
+  }
 
-export interface CancellationResult {
-  cancelled: true;
-  already_cancelled?: boolean;
-  appointment?: { id: string; barber_name: string; formatted_date_time: string };
-}
+  private buildCalendarUrl(appointment: Appointment): string {
+    return buildGoogleCalendarUrl({
+      title: `${this.deps.businessName} — ${appointment.barberName}`,
+      start: appointment.startsAt,
+      end: appointment.endsAt(APPOINTMENT_MINUTES),
+      details: `Cita con ${appointment.barberName}. Reserva a nombre de ${appointment.clientName}.`,
+      location: this.deps.businessAddress,
+    });
+  }
 
-export async function cancelBooking(
-  token: string,
-  now: Date = new Date(),
-): Promise<CancellationResult> {
-  const cancelled = await cancelByToken(token, now);
-  if (cancelled) {
+  private toConfirmationDto(
+    appointment: Appointment,
+    flags: { emailSent: boolean; idempotentReplay: boolean },
+  ): BookingConfirmationDto {
     return {
-      cancelled: true,
       appointment: {
-        id: cancelled.id,
-        barber_name: cancelled.barberName,
-        formatted_date_time: formatFullDateTime(cancelled.startsAt, env.BUSINESS_TIMEZONE),
+        id: appointment.id,
+        client_name: appointment.clientName,
+        date_time: appointment.startsAt.toISOString(),
+        barber_name: appointment.barberName,
+        status: 'confirmed',
       },
+      formatted_date_time: this.formatDateTime(appointment.startsAt),
+      google_calendar_url: this.buildCalendarUrl(appointment),
+      email_sent: flags.emailSent,
+      idempotent_replay: flags.idempotentReplay,
     };
   }
-
-  // Nothing was updated: explain why, without revealing more than the token
-  // holder already knows.
-  const existing = await findByToken(token);
-  if (!existing) {
-    throw new BookingError('TOKEN_NOT_FOUND', 'This cancellation link is not valid.');
-  }
-  if (existing.status === 'cancelled') {
-    return { cancelled: true, already_cancelled: true };
-  }
-  throw new BookingError(
-    'APPOINTMENT_IN_PAST',
-    'This appointment already took place and can no longer be cancelled.',
-  );
-}
-
-function buildCancelUrl(cancelToken: string): string {
-  return `${env.NEXT_PUBLIC_APP_URL}/cancel/${cancelToken}`;
-}
-
-function buildCalendarUrlFor(appointment: StoredAppointment): string {
-  return buildGoogleCalendarUrl({
-    title: `${BUSINESS_NAME} — ${appointment.barberName}`,
-    start: appointment.startsAt,
-    end: addMinutes(appointment.startsAt, APPOINTMENT_MINUTES),
-    details: `Cita con ${appointment.barberName}. Reserva a nombre de ${appointment.clientName}.`,
-    location: BUSINESS_ADDRESS,
-  });
-}
-
-function presentBooking(
-  appointment: StoredAppointment,
-  flags: { emailSent: boolean; idempotentReplay: boolean },
-): BookingConfirmation {
-  return {
-    appointment: {
-      id: appointment.id,
-      client_name: appointment.clientName,
-      date_time: appointment.startsAt.toISOString(),
-      barber_name: appointment.barberName,
-      status: 'confirmed',
-    },
-    formatted_date_time: formatFullDateTime(appointment.startsAt, env.BUSINESS_TIMEZONE),
-    google_calendar_url: buildCalendarUrlFor(appointment),
-    email_sent: flags.emailSent,
-    idempotent_replay: flags.idempotentReplay,
-  };
 }

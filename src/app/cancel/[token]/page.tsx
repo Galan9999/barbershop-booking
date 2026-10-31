@@ -1,8 +1,6 @@
-import { findByToken } from '@/modules/booking/infrastructure/appointment.repository';
+import { getBookingService } from '@/modules/booking/booking.module';
 import { CancelBookingButton } from '@/modules/booking/ui/components/CancelBooking/CancelBookingButton';
 import { BUSINESS_NAME } from '@/shared/config/business.config';
-import { env } from '@/shared/config/env';
-import { formatFullDateTime } from '@/shared/utils/datetime';
 import styles from './page.module.css';
 
 export const dynamic = 'force-dynamic';
@@ -12,6 +10,9 @@ const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{
 /**
  * Where the cancellation link in the email lands. This page only shows the
  * appointment: email clients prefetch links, so the GET must not cancel.
+ *
+ * It reads through the application service, never the repository: presentation
+ * talks to the adjacent layer only.
  */
 export default async function CancelPage({
   params,
@@ -19,7 +20,9 @@ export default async function CancelPage({
   params: Promise<{ token: string }>;
 }) {
   const { token } = await params;
-  const appointment = UUID_PATTERN.test(token) ? await findByToken(token) : null;
+  const appointment = UUID_PATTERN.test(token)
+    ? await getBookingService().getAppointmentByToken(token)
+    : null;
 
   return (
     <main className={styles.page}>
@@ -34,7 +37,7 @@ export default async function CancelPage({
           <p className={styles.message}>
             Esta cita ya estaba cancelada. No tienes que hacer nada más.
           </p>
-        ) : appointment.startsAt.getTime() <= Date.now() ? (
+        ) : !appointment.canBeCancelled ? (
           <p className={styles.message}>Esta cita ya ha pasado y no se puede cancelar.</p>
         ) : (
           <>
@@ -42,7 +45,7 @@ export default async function CancelPage({
             <dl className={styles.details}>
               <div className={styles.row}>
                 <dt>Cuándo</dt>
-                <dd>{formatFullDateTime(appointment.startsAt, env.BUSINESS_TIMEZONE)}</dd>
+                <dd>{appointment.formattedDateTime}</dd>
               </div>
               <div className={styles.row}>
                 <dt>Barbero</dt>

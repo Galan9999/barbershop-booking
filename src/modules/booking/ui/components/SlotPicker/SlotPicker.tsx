@@ -1,13 +1,13 @@
 'use client';
 
-import type { SlotAvailability } from '@/modules/booking/application/availability.service';
+import type { SlotAvailabilityDto } from '@/modules/booking/application/availability.service';
 import styles from './SlotPicker.module.css';
 
 interface SlotPickerProps {
-  slots: SlotAvailability[];
+  slots: SlotAvailabilityDto[];
   selectedIso: string | undefined;
   /** Slots this barber cannot take, including ones taken since page load. */
-  isTaken: (slot: SlotAvailability) => boolean;
+  isTaken: (slot: SlotAvailabilityDto) => boolean;
   onSelect: (iso: string) => void;
 }
 

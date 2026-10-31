@@ -1,4 +1,4 @@
-import { getAvailability } from '@/modules/booking/application/availability.service';
+import { getAvailabilityService } from '@/modules/booking/booking.module';
 import { BookingForm } from '@/modules/booking/ui/components/BookingForm/BookingForm';
 import { BUSINESS_ADDRESS, BUSINESS_NAME } from '@/shared/config/business.config';
 import { Callout } from '@/shared/ui/components/Callout/Callout';
@@ -19,7 +19,7 @@ export default async function BookPage({
   searchParams: Promise<{ barber?: string }>;
 }) {
   const { barber } = await searchParams;
-  const availability = await getAvailability();
+  const availability = await getAvailabilityService().getAvailability();
   const initialBarber = availability.barbers.find((name) => name === barber);
 
   return (

@@ -18,8 +18,8 @@ lleguen a producción, no listar observaciones genéricas.
 2. **Seguridad de tokens.** `cancel_token` no puede aparecer en respuestas de reserva,
    logs ni URLs de analytics. Ningún `GET` puede mutar estado: los escáneres de enlaces
    de los clientes de correo siguen los GET.
-3. **Fronteras servidor/cliente.** Un Client Component nunca importa `lib/env.ts`,
-   `lib/supabase/admin.ts` ni nada marcado `server-only`. Las fechas cruzan como ISO string.
+3. **Fronteras servidor/cliente.** Un Client Component nunca importa `shared/config/env.ts`,
+   `shared/infrastructure/supabase/admin.ts` ni nada marcado `server-only`. Las fechas cruzan como ISO string.
 4. **Zonas horarias.** La base guarda UTC; las reglas de negocio y el formato se evalúan
    en `BUSINESS_TIMEZONE`. Cualquier aritmética manual de horas para "convertir" zonas es
    un defecto, incluidos los cambios de hora estacionales.
@@ -27,22 +27,28 @@ lleguen a producción, no listar observaciones genéricas.
 6. **Errores.** Nada de `catch {}` vacío. Error esperado devuelve 4xx tipado sin log de
    error; inesperado loguea con contexto y responde 500 genérico sin filtrar detalles
    internos.
-7. **Separación en capas.** Cada pieza de código tiene que estar en su sitio, y este
-   proyecto tiene capas explícitas:
+7. **Separación en capas.** `.claude/rules/architecture.md` es la referencia
+   normativa del proyecto: la arquitectura correcta es esa, y un cambio que no encaje
+   es un defecto, no una variante aceptable. Léela antes de revisar nada estructural.
 
-   | Capa | Carpeta | Puede depender de | Nunca contiene |
-   |---|---|---|---|
-   | Dominio | `lib/domain/` | nada (funciones puras) | I/O, HTTP, SQL, env |
-   | Repositorios | `lib/repositories/` | dominio, cliente de base | reglas de negocio, HTTP |
-   | Servicios | `lib/services/` | dominio, repositorios, helpers | objetos `Request`/`Response` |
-   | Helpers | `lib/*.ts` (time, google-calendar) | nada del proyecto | estado, I/O |
-   | Rutas | `app/api/**/route.ts` | servicios, validación | reglas de negocio, SQL, email |
+   Resumen de lo que debes comprobar:
 
-   Marca como defecto: una regla de negocio escrita dentro de un Route Handler, una
-   consulta a la base fuera de `lib/repositories/`, un servicio que recibe o devuelve
-   `Request`/`Response`, una función pura que lee `env`, y lógica duplicada entre una
-   ruta y un servicio. Un Route Handler correcto solo traduce: parsea la entrada, llama
-   a un servicio y convierte el resultado o el error de dominio en una respuesta HTTP.
+   | Capa | Puede depender de | Nunca contiene |
+   |---|---|---|
+   | `domain/` | nada externo; solo constantes y helpers puros | I/O, HTTP, SQL, `env`, librerías (zod incluida) |
+   | `application/` | puertos del dominio, DTOs, helpers | implementaciones concretas, `Request`/`Response`, `env` |
+   | `infrastructure/` | dominio, shared | reglas de negocio |
+   | `ui/` y `app/` | servicios de aplicación y DTOs | repositorios, entidades, SQL, email |
+
+   Marca como **bloqueante**: una página o ruta que importa un repositorio; un servicio
+   que importa una implementación concreta en vez de recibir su puerto; una entidad o
+   una fila de base de datos que llega a un componente; cualquier import externo dentro
+   de `domain/`; un servicio que lee `env` en vez de recibir configuración; y una
+   dependencia circular.
+
+   Verifica también que los patrones obligatorios siguen en pie: repositorio tras
+   interfaz, inyección por constructor, composition root como único sitio que elige
+   implementaciones, entidades con su comportamiento y DTOs en la frontera.
 
 8. **Coste.** El presupuesto es $0: toda dependencia o servicio nuevo necesita declarar
    su límite free.

@@ -2,9 +2,14 @@
 paths:
   - "src/app/api/**/*.ts"
 ---
-# Route Handlers (R2)
+# Route Handlers
 
-- Ubicación: `app/api/<recurso>/route.ts`. Un recurso, un fichero. Lógica de negocio en `lib/`, aquí solo orquestación.
+Son capa de **presentación**: solo traducen. La arquitectura completa está en
+`.claude/rules/architecture.md`.
+
+- Ubicación: `src/app/api/<recurso>/route.ts`. Un recurso, un fichero.
+- **Un handler solo traduce**: parsea con zod, llama a un servicio obtenido del composition root (`getBookingService()`), y devuelve. Las reglas de negocio viven en `application/` y `domain/`.
+- **Nunca importa un repositorio ni una implementación de infraestructura**: es un defecto bloqueante.
 - Siempre: `export const runtime = 'nodejs'` y `export const dynamic = 'force-dynamic'`.
 - Cuerpo completo envuelto en `try/catch`. El `catch` final loguea con contexto y responde `500 INTERNAL` genérico.
 - Flujo fijo: (1) parse JSON seguro → (2) zod (`domain/booking.schemas.ts`) → (3) reglas de negocio → (4) BBDD → (5) efectos (email) → (6) respuesta tipada.

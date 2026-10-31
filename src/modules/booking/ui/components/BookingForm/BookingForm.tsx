@@ -1,7 +1,7 @@
 'use client';
 
 import type { FormEvent } from 'react';
-import type { Availability } from '@/modules/booking/application/availability.service';
+import type { AvailabilityDto } from '@/modules/booking/application/availability.service';
 import { BarberPicker } from '@/modules/booking/ui/components/BarberPicker/BarberPicker';
 import { BookingCalendar } from '@/modules/booking/ui/components/BookingCalendar/BookingCalendar';
 import { BookingConfirmation } from '@/modules/booking/ui/components/BookingConfirmation/BookingConfirmation';
@@ -13,7 +13,7 @@ import { Field } from '@/shared/ui/components/Field/Field';
 import styles from './BookingForm.module.css';
 
 interface BookingFormProps {
-  availability: Availability;
+  availability: AvailabilityDto;
   businessAddress: string;
   initialBarber?: string;
 }

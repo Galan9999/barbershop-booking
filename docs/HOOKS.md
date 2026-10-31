@@ -7,10 +7,10 @@ todos los gates aplicables no se presenta como terminado.
 
 ### G1 · Type safety
 - `npx tsc --noEmit` sin errores. Sin `any` nuevos, sin `@ts-ignore` / `@ts-expect-error` sin comentario justificando.
-- Tipos de BBDD (`lib/supabase/types.ts`) coherentes con la última migración.
+- Tipos de BBDD (`shared/types/database.types.ts`) coherentes con la última migración.
 
 ### G2 · Race conditions (flujo de reservas)
-Checklist obligatorio si el cambio toca `/api/reserve`, `/api/cancel`, migraciones de `appointments` o `lib/supabase/`:
+Checklist obligatorio si el cambio toca `/api/reserve`, `/api/cancel`, migraciones de `appointments` o `modules/booking/infrastructure/`:
 - [ ] El índice único parcial `(barber_name, date_time) WHERE status='confirmed'` sigue existiendo y sigue siendo la única defensa contra dobles reservas.
 - [ ] El error `23505` sigue manejado y traducido a `409` (o a respuesta idempotente).
 - [ ] Ninguna lógica nueva hace check-then-act sin respaldo de constraint.

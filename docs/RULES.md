@@ -1,14 +1,16 @@
 # RULES & STYLE GUIDE
 
-Las reglas de desarrollo viven en `.claude/rules/` (convención oficial de Claude Code:
-cada fichero se carga automáticamente cuando se trabaja con los paths que declara):
+Las reglas viven en `.claude/rules/` (convención oficial de Claude Code: cada fichero
+se carga automáticamente al trabajar con los paths que declara).
 
 | Fichero | Ámbito (`paths`) | Cubre |
 |---|---|---|
-| `.claude/rules/api-routes.md` | `app/api/**/*.ts` | Route Handlers: flujo, try/catch, errores tipados, G2 |
-| `.claude/rules/database.md` | `supabase/**`, `lib/supabase/**` | Migraciones, nomenclatura SQL, concurrencia, RLS |
-| `.claude/rules/email.md` | `lib/email/**` | Plantillas, entregabilidad, fallos de envío |
-| `.claude/rules/components.md` | `app/**/*.tsx`, `components/**` | Server vs Client Components, props, fechas |
-| `.claude/rules/typescript.md` | `**/*.{ts,tsx}` | strict, zod, nomenclatura TS, manejo de errores |
+| `architecture.md` | siempre | **Referencia normativa**: capas, regla de dependencias, puertos, inyección, composition root, DTOs y anti-patrones |
+| `api-routes.md` | `src/app/api/**` | Route Handlers: traducción HTTP, errores tipados, gate G2 |
+| `database.md` | `supabase/**`, repositorios | Migraciones, nomenclatura SQL, concurrencia, RLS |
+| `email.md` | infraestructura de email | Plantillas, entregabilidad, fallos de envío |
+| `components.md` | `src/app/**`, `ui/**` | Server vs Client, CSS Modules, accesibilidad, móvil |
+| `typescript.md` | `src/**/*.{ts,tsx}` | strict, zod, nomenclatura, manejo de errores |
 
-No dupliques reglas aquí: este fichero es solo el índice humano.
+`architecture.md` no lleva `paths`: se carga en toda sesión, porque aplica a cualquier
+cambio estructural. No dupliques reglas aquí: este fichero es solo el índice humano.

@@ -17,6 +17,7 @@ Cada skill define cuándo se activa y qué implica. Los identificadores van en i
 - Todo INSERT de reserva maneja el error `23505` y lo traduce a `409 SLOT_TAKEN` (o respuesta idempotente si es el mismo cliente reintentando).
 - Las cancelaciones usan UPDATE condicional (`WHERE status = 'confirmed'`) para ser idempotentes y no resucitar citas.
 - Si en el futuro hay operaciones multi-fila, usar funciones SQL (`rpc`) con transacción, no varias llamadas supabase-js encadenadas.
+- Las garantías de concurrencia se documentan en la interfaz del puerto (`domain/interfaces/appointment-repository.interface.ts`), para que cualquier implementación futura sepa qué debe cumplir.
 
 ## S3 · `nextjs-app-router-architecture`
 **Se activa**: al crear páginas, componentes o endpoints.
@@ -36,7 +37,7 @@ Cada skill define cuándo se activa y qué implica. Los identificadores van en i
 ## S5 · `timezone-correctness`
 **Se activa**: en todo código que cree, compare o muestre fechas.
 - La BBDD guarda `timestamptz` (UTC). El negocio opera en `BUSINESS_TIMEZONE` (Europe/Madrid).
-- Formateo solo con `Intl.DateTimeFormat` + helpers de `lib/time.ts`; prohibido sumar/restar horas a mano para "convertir" zonas.
+- Formateo solo con `Intl.DateTimeFormat` + helpers de `shared/utils/datetime/`; prohibido sumar/restar horas a mano para "convertir" zonas.
 - Validaciones de horario de apertura se evalúan en la zona del negocio, no en UTC ni en la del servidor.
 - Revisar los cambios de hora (DST): un slot de las 09:00 debe seguir siendo las 09:00 locales tras el cambio.
 
@@ -50,12 +51,13 @@ Cada skill define cuándo se activa y qué implica. Los identificadores van en i
 ## S7 · `input-validation-zod`
 **Se activa**: en cada entrada externa (body, params, query, env).
 - "Parse, don't validate": el handler trabaja con el tipo inferido del esquema, nunca con el body crudo.
-- Esquemas en `lib/validation/`, compartidos entre cliente y servidor cuando aplique.
-- `process.env` se valida una vez en `lib/env.ts`; el resto del código importa el objeto tipado.
+- Los esquemas viven en `application/dto/`, no en el dominio: zod es una librería externa y el dominio se mantiene puro.
+- Esquemas en `application/dto/`, compartidos entre cliente y servidor cuando aplique.
+- `process.env` se valida una vez en `shared/config/env.ts`; el resto del código importa el objeto tipado.
 
 ## S8 · `error-handling-and-observability`
 **Se activa**: al escribir handlers, helpers con I/O, o al depurar.
-- Respuestas de error uniformes: `{ error: { code, message } }` vía `lib/api/response.ts`; el cliente nunca ve stack traces ni mensajes de Postgres.
+- Respuestas de error uniformes: `{ error: { code, message } }` vía `shared/http/api-error.ts`; el cliente nunca ve stack traces ni mensajes de Postgres.
 - Log server-side estructurado (`console.error` con objeto: ruta, código, causa) — visible en Vercel logs (free).
 - Distinguir siempre error esperado (validación, conflicto) de inesperado (500): solo el segundo se loguea como error.
 
