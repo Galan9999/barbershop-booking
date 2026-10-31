@@ -17,7 +17,8 @@
     "dev:local": "./scripts/with-local-db.sh next dev",
     "db:sql": "./scripts/print-schema.sh",
     "email:preview": "node scripts/preview-email.mjs",
-    "qr": "node scripts/generate-qr.mjs"
+    "qr": "node scripts/generate-qr.mjs",
+    "deploy": "./scripts/deploy-vercel.sh"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.49.4",
@@ -37,6 +38,7 @@
     "jsqr": "^1.4.0",
     "pngjs": "^7.0.0",
     "qrcode": "^1.5.4",
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "vercel": "^65.9.0"
   }
 }
