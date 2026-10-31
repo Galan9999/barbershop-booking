@@ -11,7 +11,9 @@
     "db:stop": "./scripts/dev-db.sh stop",
     "db:reset": "./scripts/dev-db.sh reset",
     "db:psql": "./scripts/dev-db.sh psql",
-    "test:smoke": "./scripts/smoke-test.sh"
+    "test:smoke": "./scripts/smoke-test.sh",
+    "db:push": "./scripts/db-push.sh",
+    "check:connection": "node scripts/check-connection.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.49.4",

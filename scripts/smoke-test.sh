@@ -7,6 +7,20 @@ BASE="${BASE_URL:-http://localhost:3000}"
 PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 export PATH="/opt/homebrew/opt/postgresql@17/bin:$PATH"
 
+# This script DROPS the database. Refuse to run unless the app is pointed at the
+# local stack, so a stray .env.local can never cost real bookings.
+if [ -f "$PROJECT_DIR/.env.local" ]; then
+  configured_url="$(grep -E '^[[:space:]]*SUPABASE_URL=' "$PROJECT_DIR/.env.local" | tail -1 | cut -d= -f2- | tr -d '"'"'"' ' )"
+  case "$configured_url" in
+    http://localhost:*|http://127.0.0.1:*) ;;
+    *)
+      echo "ABORTADO: SUPABASE_URL apunta a '$configured_url', no al stack local." >&2
+      echo "Este script borra la base de datos. Solo se ejecuta contra localhost." >&2
+      exit 1
+      ;;
+  esac
+fi
+
 "$PROJECT_DIR/scripts/dev-db.sh" reset >/dev/null 2>&1
 S1=$(node -e 'console.log(new Date("2026-11-02T10:00:00+01:00").toISOString())')
 S2=$(node -e 'console.log(new Date("2026-11-03T11:00:00+01:00").toISOString())')

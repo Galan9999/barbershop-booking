@@ -26,9 +26,22 @@ npm run db:reset     # base limpia desde las migraciones
 salen de la máquina, se escriben en `.dev-emails/` para poder abrir el enlace de
 cancelación.
 
+## Comprobar credenciales
+
+```bash
+npm run check:connection
+```
+
+Lee `.env.local`, valida que están todas las variables, hace una lectura contra
+Supabase y pregunta a Resend por los dominios verificados. No imprime secretos y no
+modifica nada. Para conectar con los servicios reales, ver `docs/SETUP-PRODUCCION.md`.
+
 ## Qué cubre la batería
 
 Reserva válida, reintento idempotente del mismo cliente, hueco ocupado por otro,
 día cerrado, email inválido, hueco desalineado, token inexistente, `GET` que no muta,
 diez reservas simultáneas al mismo hueco (debe sobrevivir exactamente una),
 cancelación, doble clic y liberación del hueco.
+
+> `npm run test:smoke` **borra la base de datos** al empezar. Ejecútalo solo contra el
+> stack local, nunca con `.env.local` apuntando a Supabase.
