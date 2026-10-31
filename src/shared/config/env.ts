@@ -12,13 +12,33 @@ const envSchema = z.object({
   EMAIL_FROM: z.string().min(3),
 });
 
-/** Validated at module load: a missing variable fails the boot, not a request. */
-export const env = envSchema.parse({
-  NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
-  BUSINESS_TIMEZONE: process.env.BUSINESS_TIMEZONE,
-  SUPABASE_URL: process.env.SUPABASE_URL,
-  SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
-  EMAIL_TRANSPORT: process.env.EMAIL_TRANSPORT,
-  RESEND_API_KEY: process.env.RESEND_API_KEY,
-  EMAIL_FROM: process.env.EMAIL_FROM,
-});
+/**
+ * Validated at module load: a missing variable fails the build, not a request.
+ * The raw ZodError is unreadable in a deploy log, so it is rewritten into a
+ * list of what is actually missing or malformed.
+ */
+function parseEnv() {
+  const result = envSchema.safeParse({
+    NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
+    BUSINESS_TIMEZONE: process.env.BUSINESS_TIMEZONE,
+    SUPABASE_URL: process.env.SUPABASE_URL,
+    SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
+    EMAIL_TRANSPORT: process.env.EMAIL_TRANSPORT,
+    RESEND_API_KEY: process.env.RESEND_API_KEY,
+    EMAIL_FROM: process.env.EMAIL_FROM,
+  });
+
+  if (result.success) return result.data;
+
+  const problems = result.error.issues
+    .map((issue) => `  - ${issue.path.join('.') || '(root)'}: ${issue.message}`)
+    .join('\n');
+  throw new Error(
+    `Configuración de entorno inválida.\n${problems}\n\n` +
+      'En local: copia .env.example a .env.local y rellénalo.\n' +
+      'En Vercel: Settings > Environment Variables.\n' +
+      'Comprueba con: npm run check:connection',
+  );
+}
+
+export const env = parseEnv();
