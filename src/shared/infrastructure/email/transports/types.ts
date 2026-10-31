@@ -20,3 +20,9 @@ export interface OutgoingEmail {
 export interface EmailTransport {
   send(email: OutgoingEmail): Promise<{ sent: boolean }>;
 }
+
+/** Pulls the bare address out of `Name <addr@host>`, or returns it unchanged. */
+export function extractEmailAddress(from: string): string {
+  const match = from.match(/<([^>]+)>/);
+  return (match?.[1] ?? from).trim();
+}

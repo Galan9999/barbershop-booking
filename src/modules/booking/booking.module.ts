@@ -38,6 +38,7 @@ export function getBookingService(): BookingService {
       businessName: BUSINESS_NAME,
       businessAddress: BUSINESS_ADDRESS,
       businessEmail: env.BUSINESS_EMAIL,
+      emailFrom: env.EMAIL_FROM,
     }),
     clock: systemClock,
     timeZone: env.BUSINESS_TIMEZONE,

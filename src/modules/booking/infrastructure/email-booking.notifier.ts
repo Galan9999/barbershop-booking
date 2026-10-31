@@ -20,13 +20,19 @@ import {
   buildCalendarInvite,
   type CalendarInvite,
 } from '@/shared/utils/calendar/ics';
-import type { EmailTransport } from '@/shared/infrastructure/email/transports/types';
+import {
+  extractEmailAddress,
+  type EmailTransport,
+} from '@/shared/infrastructure/email/transports/types';
 
 interface NotifierOptions {
   transport: EmailTransport;
   businessName: string;
   businessAddress: string;
+  /** Where the shop receives bookings: the invitation's attendee. */
   businessEmail: string;
+  /** The From header. Its address must also be the invitation's organizer. */
+  emailFrom: string;
 }
 
 /** Email implementation of the BookingNotifier port. */
@@ -111,7 +117,9 @@ export class EmailBookingNotifier implements BookingNotifier {
         `Barbero: ${notification.barberName}`,
       ].join('\n'),
       location: this.options.businessAddress,
-      organizerEmail: this.options.businessEmail,
+      // Organizer must match the sending address. A mismatch looks like
+      // spoofing to Gmail, which then refuses to add the event by itself.
+      organizerEmail: extractEmailAddress(this.options.emailFrom),
       organizerName: this.options.businessName,
       attendeeEmail: this.options.businessEmail,
       attendeeName: this.options.businessName,
