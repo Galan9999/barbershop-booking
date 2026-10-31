@@ -18,7 +18,8 @@
     "db:sql": "./scripts/print-schema.sh",
     "email:preview": "node scripts/preview-email.mjs",
     "qr": "node scripts/generate-qr.mjs",
-    "deploy": "./scripts/deploy-vercel.sh"
+    "deploy": "./scripts/deploy-vercel.sh",
+    "vercel:env": "node scripts/make-vercel-env.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.49.4",
