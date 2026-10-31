@@ -17,6 +17,7 @@ const VARIABLES = [
   'EMAIL_TRANSPORT',
   'RESEND_API_KEY',
   'EMAIL_FROM',
+  'BUSINESS_EMAIL',
 ];
 
 const appUrl = process.argv[2];

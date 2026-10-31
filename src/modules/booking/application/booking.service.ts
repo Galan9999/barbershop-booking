@@ -64,6 +64,10 @@ export class BookingService {
       cancelUrl: this.buildCancelUrl(appointment.cancelToken),
     });
 
+    // The shop is told separately, with a calendar invitation attached. Its
+    // own failure is logged, never raised: the booking already exists.
+    await this.notifyShop(appointment, 'booked');
+
     return this.toConfirmationDto(appointment, { emailSent: sent, idempotentReplay: false });
   }
 
@@ -77,6 +81,7 @@ export class BookingService {
     }
 
     if (didCancel) {
+      await this.notifyShop(appointment, 'cancelled');
       return {
         cancelled: true,
         appointment: {
@@ -119,6 +124,35 @@ export class BookingService {
       return this.toConfirmationDto(existing, { emailSent: false, idempotentReplay: true });
     }
     throw new BookingError('SLOT_TAKEN', 'That slot has just been booked. Pick another one.');
+  }
+
+  /** Shop notices are best-effort: they must never fail a user's request. */
+  private async notifyShop(
+    appointment: Appointment,
+    kind: 'booked' | 'cancelled',
+  ): Promise<void> {
+    const notification = {
+      appointmentId: appointment.id,
+      clientName: appointment.fullName,
+      clientEmail: appointment.clientEmail,
+      clientPhone: appointment.clientPhone,
+      barberName: appointment.barberName,
+      formattedDateTime: this.formatDateTime(appointment.startsAt),
+      startsAt: appointment.startsAt,
+      endsAt: appointment.endsAt(APPOINTMENT_MINUTES),
+    };
+    try {
+      const { sent } =
+        kind === 'booked'
+          ? await this.deps.notifier.notifyShopOfBooking(notification)
+          : await this.deps.notifier.notifyShopOfCancellation(notification);
+      if (!sent) console.error('[booking] shop notice not delivered', { kind });
+    } catch (error) {
+      console.error('[booking] shop notice failed', {
+        kind,
+        cause: error instanceof Error ? error.message : 'unknown',
+      });
+    }
   }
 
   private formatDateTime(instant: Date): string {

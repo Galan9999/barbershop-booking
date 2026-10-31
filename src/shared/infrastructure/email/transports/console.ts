@@ -20,6 +20,12 @@ export function createConsoleTransport(): EmailTransport {
         const file = join(OUTBOX_DIR, `${stamp}_${slug}.html`);
         await writeFile(file, email.html, 'utf8');
         console.info(`[email:dev] "${email.subject}" -> ${email.to}\n  saved: ${file}`);
+
+        for (const attachment of email.attachments ?? []) {
+          const path = join(OUTBOX_DIR, `${stamp}_${slug}_${attachment.filename}`);
+          await writeFile(path, attachment.content, 'utf8');
+          console.info(`[email:dev] adjunto: ${path}`);
+        }
         console.info(`[email:dev] text body:\n${email.text}`);
         return { sent: true };
       } catch (err) {

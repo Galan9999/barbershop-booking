@@ -33,6 +33,7 @@ export SUPABASE_SERVICE_ROLE_KEY="$LOCAL_KEY"
 export EMAIL_TRANSPORT="console"
 export RESEND_API_KEY="re_local_placeholder"
 export EMAIL_FROM="Barbería Central <citas@example.com>"
+export BUSINESS_EMAIL="barberia@example.com"
 export USING_LOCAL_STACK="1"
 
 cd "$PROJECT_DIR"

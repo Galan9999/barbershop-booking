@@ -54,6 +54,7 @@ for (const key of [
   'EMAIL_TRANSPORT',
   'RESEND_API_KEY',
   'EMAIL_FROM',
+  'BUSINESS_EMAIL',
 ]) {
   const value = env[key];
   const isSecret = key.includes('KEY');

@@ -14,6 +14,11 @@ export function createResendTransport(): EmailTransport {
           subject: email.subject,
           html: email.html,
           text: email.text,
+          attachments: email.attachments?.map((attachment) => ({
+            filename: attachment.filename,
+            content: Buffer.from(attachment.content, 'utf8'),
+            contentType: attachment.contentType,
+          })),
         });
         if (error) {
           console.error('[email] resend rejected the message', { name: error.name });

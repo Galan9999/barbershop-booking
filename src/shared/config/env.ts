@@ -10,6 +10,8 @@ const envSchema = z.object({
   EMAIL_TRANSPORT: z.enum(['resend', 'console']).default('resend'),
   RESEND_API_KEY: z.string().min(1),
   EMAIL_FROM: z.string().min(3),
+  /** Where the shop receives each booking, with the calendar invitation. */
+  BUSINESS_EMAIL: z.string().email(),
 });
 
 /**
@@ -26,6 +28,7 @@ function parseEnv() {
     EMAIL_TRANSPORT: process.env.EMAIL_TRANSPORT,
     RESEND_API_KEY: process.env.RESEND_API_KEY,
     EMAIL_FROM: process.env.EMAIL_FROM,
+    BUSINESS_EMAIL: process.env.BUSINESS_EMAIL,
   });
 
   if (result.success) return result.data;
