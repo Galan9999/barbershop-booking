@@ -7,7 +7,7 @@
  * Writes to qr/: an SVG and a PNG of the bare code, plus an A5 poster per
  * target. SVG is the one to send to a printer; it stays sharp at any size.
  */
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import QRCode from 'qrcode';
 
@@ -21,8 +21,31 @@ const QR_OPTIONS = {
   color: { dark: '#1c1917', light: '#ffffff' },
 };
 
-const BUSINESS_NAME = 'Barbería Central';
-const BARBERS = ['Carlos', 'Miguel'];
+/** Reads the shop's own name and barbers, so the poster matches the install. */
+function readEnvFile(file) {
+  const values = {};
+  try {
+    for (const line of readFileSync(file, 'utf8').split('\n')) {
+      const match = line.match(/^\s*([A-Z0-9_]+)\s*=\s*(.*)$/);
+      if (match) {
+        values[match[1]] = match[2].trim().replace(/^["']|["']$/g, '').replace(/\s+#.*$/, '');
+      }
+    }
+  } catch {
+    // No .env.local is fine: the defaults below apply.
+  }
+  return values;
+}
+
+const env = { ...readEnvFile('.env.local'), ...process.env };
+const BUSINESS_NAME = env.BUSINESS_NAME || 'Barbería Central';
+const BARBERS = (env.BUSINESS_BARBERS || 'Carlos, Miguel')
+  .split(',')
+  .map((name) => name.trim())
+  .filter(Boolean);
+const ACCENT_COLOR = /^#[0-9a-f]{3,8}$/i.test(env.BUSINESS_COLOR_ACCENT ?? '')
+  ? env.BUSINESS_COLOR_ACCENT
+  : '#7c2d12';
 
 function parseArguments(argv) {
   const positional = argv.filter((value) => !value.startsWith('--'));
@@ -51,7 +74,7 @@ function buildPoster({ qrSvg, heading, subheading, url }) {
   <text x="74" y="26" text-anchor="middle" font-family="Georgia, serif" font-size="9"
         font-weight="bold" fill="#1c1917">${escapeXml(heading)}</text>
   <text x="74" y="38" text-anchor="middle" font-family="Helvetica, Arial, sans-serif"
-        font-size="5.5" letter-spacing="0.6" fill="#7c2d12">${escapeXml(subheading)}</text>
+        font-size="5.5" letter-spacing="0.6" fill="${ACCENT_COLOR}">${escapeXml(subheading)}</text>
 
   <rect x="19" y="52" width="110" height="110" rx="4" fill="#ffffff" stroke="#e4ded4"/>
   <svg x="24" y="57" width="100" height="100" viewBox="${viewBox}">${inner}</svg>
@@ -116,7 +139,7 @@ if (perBarber) {
   for (const barber of BARBERS) {
     await generateTarget({
       url: `${origin}/book?barber=${encodeURIComponent(barber)}`,
-      slug: `reservar-${barber.toLowerCase()}`,
+      slug: `reservar-${barber.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-')}`,
       subheading: `CITA CON ${barber.toUpperCase()}`,
     });
   }

@@ -35,7 +35,11 @@ export const reserveSchema = z.object({
     .string()
     .datetime({ offset: true })
     .transform((value) => new Date(value)),
-  barber_name: z.enum(BARBERS),
+  // The barber list comes from configuration, so it cannot be a literal enum.
+  barber_name: z
+    .string()
+    .trim()
+    .refine((name) => BARBERS.includes(name), 'Ese peluquero no existe'),
 });
 export type ReserveRequestDto = z.infer<typeof reserveSchema>;
 
