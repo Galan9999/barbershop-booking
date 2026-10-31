@@ -1,28 +1,52 @@
 # Arquitectura por capas (estricta)
 
-El código se organiza en capas con dependencias en una sola dirección. Cada pieza va
-en su sitio: una regla de negocio nunca vive en una ruta, una consulta nunca vive en
-un servicio.
+El código vive en `src/`, organizado por módulo de negocio y, dentro de cada módulo,
+por capa. Las dependencias van en una sola dirección: **ui → application → domain**,
+con infrastructure debajo. Nada apunta hacia arriba.
 
-| Capa | Carpeta | Puede importar | Nunca contiene |
-|---|---|---|---|
-| Dominio | `lib/domain/` | nada del proyecto salvo `lib/config.ts` y helpers puros | I/O, HTTP, SQL, `env` |
-| Repositorios | `lib/repositories/` | dominio, `lib/supabase/` | reglas de negocio, HTTP |
-| Servicios | `lib/services/` | dominio, repositorios, helpers, email | `Request`, `Response`, códigos HTTP |
-| Helpers | `lib/*.ts` (`time`, `google-calendar`) | nada del proyecto | estado, I/O |
-| Rutas | `app/api/**/route.ts` | servicios, validación, `lib/api/` | reglas de negocio, SQL, email |
-| Páginas | `app/**/page.tsx` | servicios | SQL, reglas de negocio |
+```
+src/
+  app/                        Next.js App Router: solo rutas y páginas
+  modules/<módulo>/
+    domain/                   reglas puras, tipos de negocio, errores, esquemas zod
+    application/              casos de uso (servicios)
+    infrastructure/           repositorios, plantillas, adaptadores concretos
+    ui/components/<Nombre>/   componente + su .module.css
+    ui/hooks/                 estado y lógica de interacción extraídos
+  shared/
+    config/                   constantes de negocio y entorno validado
+    types/                    tipos transversales (esquema de la base)
+    utils/<tema>/             helpers puros agrupados por tema
+    http/                     envoltura de Route Handlers y mapeo de errores
+    infrastructure/           clientes externos (supabase, email)
+    ui/components/<Nombre>/   componentes genéricos reutilizables
+```
 
-Reglas que se siguen de lo anterior:
+## Qué puede importar cada capa
 
-- **Toda consulta a `appointments` vive en `lib/repositories/`.** Ningún otro fichero
-  importa `supabaseAdmin`.
-- **Los errores de negocio son `BookingError`** (`lib/domain/errors.ts`), sin códigos
-  HTTP. La traducción a estado HTTP ocurre en un único sitio: `lib/api/response.ts`.
-- **Un Route Handler solo traduce**: parsea, llama a un servicio y devuelve. La
-  envoltura común (zod, try/catch, mapeo de errores) está en `lib/api/handle-route.ts`,
-  así que un handler nuevo no repite nada de eso.
-- **El dominio recibe el reloj y la zona horaria como argumentos**, nunca los lee del
+| Capa | Puede importar | Nunca contiene |
+|---|---|---|
+| `domain/` | `shared/config`, `shared/utils` | I/O, HTTP, SQL, `env` |
+| `application/` | domain, infrastructure del módulo, shared | `Request`, `Response`, códigos HTTP |
+| `infrastructure/` | domain, shared | reglas de negocio |
+| `shared/utils/` | nada del proyecto | estado, I/O, `env` |
+| `ui/components/` | application (solo tipos), otros componentes, hooks | fetch directo, reglas de negocio |
+| `ui/hooks/` | el cliente de API del módulo, tipos | JSX |
+| `app/` | application, componentes | SQL, reglas de negocio, email |
+
+## Reglas que se siguen de lo anterior
+
+- **Un fichero, una responsabilidad, y su nombre lo dice.** Nada de cajones de sastre:
+  los helpers de fechas viven en `shared/utils/datetime/` separados en `timezone.ts`
+  (razonamiento horario), `format.ts` (presentación) y `arithmetic.ts` (cálculo).
+- **Toda consulta a `appointments` vive en el repositorio del módulo.** Ningún otro
+  fichero importa `supabaseAdmin`. El repositorio además traduce filas de base de datos
+  a objetos de dominio, así que `snake_case` y las fechas en texto no salen de ahí.
+- **Los errores de negocio son `BookingError`**, sin códigos HTTP. La traducción a
+  estado HTTP ocurre en un único sitio: `shared/http/api-error.ts`.
+- **Un Route Handler solo traduce.** La envoltura común (zod, try/catch, mapeo de
+  errores) está en `shared/http/route-handler.ts`.
+- **El dominio recibe el reloj y la zona horaria como argumentos.** Nunca los lee del
   entorno: así es testeable y lo comparten la API y la rejilla de disponibilidad.
-- **Las funciones puras no leen `env`.** Si una función necesita configuración, se le
-  pasa.
+- **Las constantes van a `shared/config/`, los tipos a donde pertenecen**: los de
+  negocio al `domain/` de su módulo, los del esquema de base a `shared/types/`.

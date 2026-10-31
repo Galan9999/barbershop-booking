@@ -1,0 +1,13 @@
+.actions {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.done {
+  padding: var(--space-5);
+  border-radius: var(--radius-md);
+  background: var(--color-accent-soft);
+  color: var(--color-text);
+  font-size: var(--text-sm);
+  text-align: center;
+}

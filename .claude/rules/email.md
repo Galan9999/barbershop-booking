@@ -1,6 +1,7 @@
 ---
 paths:
-  - "lib/email/**"
+  - "src/shared/infrastructure/email/**"
+  - "src/modules/**/infrastructure/templates/**"
 ---
 # Email transaccional (S4, G5)
 

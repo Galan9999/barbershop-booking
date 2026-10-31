@@ -23,7 +23,8 @@ Claude actúa como **Principal Software Engineer y Full-Stack Senior** del proye
 | Cliente DB | `@supabase/supabase-js` (service role, solo servidor) | 2.x | — |
 | Validación | `zod` | 3.x | — |
 | Email transaccional | Resend (principal) · Brevo (fallback) | SDK `resend` 4.x | Resend free: 3.000/mes, 100/día · Brevo free: 300/día |
-| Estilos | CSS inline (Tailwind 4 previsto si la UI crece) | — | — |
+| Estilos | CSS Modules + tokens en `globals.css` | — | — |
+| Calendario | react-day-picker | 10.x | — |
 | Hosting | Vercel | — | Hobby (serverless, 100 GB-h/mes) |
 | Calendario | Google Calendar "render?action=TEMPLATE" URL | — | Sin API, sin OAuth |
 
@@ -68,37 +69,42 @@ Claude actúa como **Principal Software Engineer y Full-Stack Senior** del proye
 
 ## 4. Estructura de carpetas
 
+Arquitectura por capas, un módulo por dominio de negocio. El detalle completo y las
+dependencias permitidas están en `.claude/rules/architecture.md`.
+
 ```
-app/
-  api/
-    reserve/route.ts        POST — crear cita
-    cancel/route.ts         POST — cancelar por token
-  book/page.tsx             landing del QR (+ booking-form.tsx cliente)
-  cancel/[token]/page.tsx   confirmación de cancelación
-  cancel/[token]/cancel-button.tsx  ('use client')
-lib/
-  domain/                   reglas puras y errores de negocio (sin I/O)
-  repositories/             único acceso a la base de datos
-  services/                 casos de uso: reservar, cancelar, disponibilidad
-  api/                      envoltura HTTP y mapeo de errores
-  env.ts                    variables de entorno validadas con zod (server-only)
-  config.ts                 barberos, horario, duración de slot
-  time.ts                   helpers de zona horaria y formato
-  google-calendar.ts        constructor de URL de plantilla
-  api/response.ts           errores JSON estandarizados y mapeo a HTTP
-  api/handle-route.ts       envoltura común de Route Handlers
-  validation/appointment.ts esquemas zod de entrada
-  supabase/admin.ts         cliente service role
-  supabase/types.ts         tipos de la BBDD (regenerar con `supabase gen types`)
-  email/resend.ts           envío
-  email/templates/          plantillas HTML + texto plano
-supabase/migrations/        SQL versionado
-scripts/dev-db.sh           Postgres + PostgREST locales (sin Docker)
-scripts/smoke-test.sh       batería end-to-end contra la base local
-docs/                       SKILLS y HOOKS (importados arriba), índices RULES/COMMANDS
-.claude/rules/              reglas por path (se cargan al tocar sus ficheros)
-.claude/skills/             comandos slash (/db-schema, /api-route, ...)
-.claude/hooks/ + settings.json  hook PostToolUse de typecheck
+src/
+  app/                              App Router: solo rutas
+    api/reserve/route.ts            POST crear cita
+    api/cancel/route.ts             POST cancelar por token
+    book/page.tsx                   landing del QR
+    cancel/[token]/page.tsx         confirmación de cancelación
+  modules/booking/
+    domain/                         booking-rules, booking-errors,
+                                    appointment.types, booking.schemas
+    application/                    booking.service, availability.service
+    infrastructure/                 appointment.repository, confirmation-email,
+                                    templates/
+    ui/components/<Nombre>/         BookingForm, BookingCalendar, SlotPicker,
+                                    BarberPicker, BookingConfirmation, CancelBooking
+    ui/hooks/                       use-booking-form
+    ui/booking.client.ts            llamadas fetch del navegador
+  shared/
+    config/                         business.config, env
+    types/                          database.types
+    utils/datetime/                 timezone, format, arithmetic
+    utils/calendar/                 google-calendar-url
+    http/                           route-handler, api-error
+    infrastructure/supabase/        admin (service role)
+    infrastructure/email/           transport + transports/
+    ui/components/<Nombre>/         Button, Field, Callout
+supabase/migrations/                SQL versionado
+scripts/dev-db.sh                   Postgres + PostgREST locales (sin Docker)
+scripts/smoke-test.sh               batería end-to-end
+docs/                               SKILLS y HOOKS (importados), LOCAL-DEV
+.claude/rules/                      reglas por path
+.claude/skills/                     comandos slash
+.claude/agents/code-quality.md      revisor de calidad del proyecto
 ```
 
 ## 5. Variables de entorno
