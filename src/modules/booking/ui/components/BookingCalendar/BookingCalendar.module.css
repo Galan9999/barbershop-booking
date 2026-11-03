@@ -4,16 +4,32 @@
   --rdp-accent-color: var(--color-accent);
   --rdp-accent-background-color: var(--color-accent-soft);
   --rdp-today-color: var(--color-accent);
-  --rdp-day-height: 2.5rem;
-  --rdp-day-width: 2.5rem;
+  --rdp-day-height: 2.75rem;
+  /* Columns share the card width instead of a fixed 7 x 2.5rem block that
+     sat in the left corner; the button fills its column. */
+  --rdp-day-width: auto;
   --rdp-day_button-height: 2.5rem;
-  --rdp-day_button-width: 2.5rem;
+  --rdp-day_button-width: 100%;
   --rdp-day_button-border-radius: var(--radius-md);
   --rdp-outside-opacity: 0;
   --rdp-disabled-opacity: 0.3;
   --rdp-font-family: var(--font-sans);
-  margin: 0 auto;
+  width: 100%;
   font-size: var(--text-sm);
+}
+
+.calendar :global(.rdp-months),
+.calendar :global(.rdp-month) {
+  width: 100%;
+  max-width: none;
+}
+
+.calendar :global(.rdp-month_grid) {
+  width: 100%;
+  table-layout: fixed;
+  /* Gaps between days. Separate borders, so the spacing applies. */
+  border-collapse: separate;
+  border-spacing: var(--space-1);
 }
 
 .calendar :global(.rdp-month_caption) {
