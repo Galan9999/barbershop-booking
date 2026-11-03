@@ -1,6 +1,6 @@
 # Estado del proyecto
 
-Última actualización: 31 de octubre de 2026.
+Última actualización: 3 de noviembre de 2026.
 
 ## En producción
 
@@ -21,13 +21,14 @@ Postgres, no por lógica de aplicación.
 
 ### 1. Los clientes no reciben el correo de confirmación
 
-**Bloqueante para uso real.** El remitente es el de pruebas de Resend
-(`onboarding@resend.dev`), que solo entrega a la dirección con la que se registró la
-cuenta. Cualquier otro destinatario es rechazado.
+**Bloqueante para uso real, en curso.** Dominio propio comprado el 3 de noviembre de
+2026: `barbershoparmandobrites.com` (Namecheap). Producción ya está configurada con
+`EMAIL_FROM=citas@barbershoparmandobrites.com` y `BUSINESS_EMAIL` apuntando al correo
+de Armando.
 
-Se arregla verificando un dominio en Resend (Domains → Add Domain, añadir los
-registros DNS) y poniendo `EMAIL_FROM` con una dirección de ese dominio. Requiere
-tener un dominio propio, unos 10 € al año.
+Falta **verificar el dominio en Resend** (Domains → Add Domain, copiar los registros
+DNS que da a Namecheap → Advanced DNS). Hasta que Resend lo marque `verified`, todo
+envío falla, también el de la peluquería.
 
 Mientras tanto la cita **sí se guarda**: el fallo del correo nunca revierte una
 reserva, y la pantalla de confirmación lo advierte.
