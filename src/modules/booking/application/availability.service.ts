@@ -6,6 +6,7 @@ import type {
 import type { Clock } from '@/modules/booking/domain/interfaces/clock.interface';
 import {
   MAX_ADVANCE_DAYS,
+  MIN_ADVANCE_MINUTES,
   SLOT_MINUTES,
   type BookableService,
 } from '@/shared/config/business.config';
@@ -51,6 +52,8 @@ export interface AvailabilityDto {
   services: ServiceDto[];
   /** Grid step. A service of N minutes needs N / slotMinutes free slots in a row. */
   slotMinutes: number;
+  /** Same notice the server enforces, so an open page can expire slots itself. */
+  minAdvanceMinutes: number;
   paymentNote: string;
   /** True when the busy-slot lookup failed and the grid may be stale. */
   degraded: boolean;
@@ -119,6 +122,7 @@ export class AvailabilityService {
         priceLabel: formatPrice(service.price),
       })),
       slotMinutes: SLOT_MINUTES,
+      minAdvanceMinutes: MIN_ADVANCE_MINUTES,
       paymentNote,
       degraded: busySlots === null,
     };
