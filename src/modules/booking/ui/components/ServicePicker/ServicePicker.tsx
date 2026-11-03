@@ -1,6 +1,7 @@
 'use client';
 
 import type { ServiceDto } from '@/modules/booking/application/availability.service';
+import { ServiceIcon } from './ServiceIcon';
 import styles from './ServicePicker.module.css';
 
 interface ServicePickerProps {
@@ -25,6 +26,7 @@ export function ServicePicker({ services, selected, paymentNote, onSelect }: Ser
               className={`${styles.option} ${isSelected ? styles.selected : ''}`}
               onClick={() => onSelect(service.id)}
             >
+              <ServiceIcon serviceId={service.id} className={styles.icon} />
               <span className={styles.label}>{service.label}</span>
               <span className={styles.meta}>
                 <span>{service.minutes} min</span>
