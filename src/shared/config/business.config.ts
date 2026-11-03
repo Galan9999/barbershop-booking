@@ -158,7 +158,16 @@ function loadBusinessConfig() {
 
 const business = loadBusinessConfig();
 
-export const BUSINESS_NAME = business.name;
+/**
+ * BUSINESS_NAME may mark line breaks for the page heading with "|", e.g.
+ * "Barbershop | Armando Britez". Everywhere else (emails, tab title, calendar)
+ * the name reads as one line.
+ */
+export const BUSINESS_NAME_LINES: readonly string[] = business.name
+  .split('|')
+  .map((line) => line.trim())
+  .filter(Boolean);
+export const BUSINESS_NAME = BUSINESS_NAME_LINES.join(' ');
 export const BUSINESS_ADDRESS = business.address;
 export const BUSINESS_PHONE: string | undefined = business.phone;
 export const BARBERS: readonly string[] = business.barbers;

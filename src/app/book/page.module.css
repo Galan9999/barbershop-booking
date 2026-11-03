@@ -11,20 +11,15 @@
 }
 
 .eyebrow {
-  color: var(--color-accent);
+  /* Muted, so the accent belongs to the shop name right below it. */
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-2);
   font-size: var(--text-xs);
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
-.title {
-  margin-top: var(--space-2);
-  font-family: var(--font-display);
-  font-size: var(--text-2xl);
-  font-weight: 700;
-  letter-spacing: -0.01em;
-}
 
 .subtitle {
   margin-top: var(--space-1);

@@ -1,6 +1,7 @@
 import { getBookingService } from '@/modules/booking/booking.module';
 import { CancelBookingButton } from '@/modules/booking/ui/components/CancelBooking/CancelBookingButton';
-import { BUSINESS_NAME } from '@/shared/config/business.config';
+import { BUSINESS_NAME_LINES } from '@/shared/config/business.config';
+import { ShopTitle } from '@/shared/ui/components/ShopTitle/ShopTitle';
 import styles from './page.module.css';
 
 export const dynamic = 'force-dynamic';
@@ -27,7 +28,7 @@ export default async function CancelPage({
   return (
     <main className={styles.page}>
       <header className={styles.header}>
-        <h1 className={styles.title}>{BUSINESS_NAME}</h1>
+        <ShopTitle lines={BUSINESS_NAME_LINES} />
       </header>
 
       <section className={styles.card}>

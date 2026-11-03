@@ -3,9 +3,11 @@ import { BookingForm } from '@/modules/booking/ui/components/BookingForm/Booking
 import {
   BUSINESS_ADDRESS,
   BUSINESS_NAME,
+  BUSINESS_NAME_LINES,
   BUSINESS_PHONE,
 } from '@/shared/config/business.config';
 import { Callout } from '@/shared/ui/components/Callout/Callout';
+import { ShopTitle } from '@/shared/ui/components/ShopTitle/ShopTitle';
 import styles from './page.module.css';
 
 export const dynamic = 'force-dynamic';
@@ -30,7 +32,7 @@ export default async function BookPage({
     <main className={styles.page}>
       <header className={styles.header}>
         <p className={styles.eyebrow}>Reserva online</p>
-        <h1 className={styles.title}>{BUSINESS_NAME}</h1>
+        <ShopTitle lines={BUSINESS_NAME_LINES} />
         <p className={styles.subtitle}>{BUSINESS_ADDRESS}</p>
       </header>
 

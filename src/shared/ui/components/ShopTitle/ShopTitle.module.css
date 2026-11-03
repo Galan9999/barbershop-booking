@@ -1,0 +1,43 @@
+.title {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+  font-family: var(--font-display);
+  font-size: var(--text-2xl);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1.1;
+}
+
+.kicker {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  color: var(--color-accent);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  letter-spacing: 0.4em;
+  /* Letter-spacing also trails the last letter; pull it back so the word
+     sits centred between its rules. */
+  margin-right: -0.4em;
+  text-transform: uppercase;
+}
+
+.kicker::before,
+.kicker::after {
+  content: '';
+  width: var(--space-8);
+  height: 1px;
+  background: currentColor;
+  opacity: 0.6;
+}
+
+.kicker::after {
+  margin-left: calc(var(--space-3) - 0.4em);
+}
+
+.main {
+  font-size: var(--text-3xl);
+  font-style: italic;
+}
