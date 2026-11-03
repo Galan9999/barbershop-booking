@@ -28,15 +28,26 @@
   text-transform: uppercase;
 }
 
+.calendar :global(.rdp-day_button:not([disabled])) {
+  background: var(--color-free-soft);
+  color: var(--color-free);
+  border: 1px solid var(--color-free-border);
+  font-weight: 600;
+}
+
 .calendar :global(.rdp-day_button:hover:not([disabled])) {
-  background: var(--color-surface-sunken);
+  border-color: var(--color-free);
 }
 
 .calendar :global(.rdp-selected .rdp-day_button) {
-  background: var(--color-accent);
+  background: var(--color-picked);
   color: var(--color-text-inverted);
-  border: none;
+  border: 1px solid var(--color-picked);
   font-weight: 700;
+}
+
+.calendar :global(.rdp-selected .rdp-day_button:hover) {
+  border-color: var(--color-picked);
 }
 
 .calendar :global(.rdp-chevron) {

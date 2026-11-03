@@ -6,9 +6,11 @@
 
 .slot {
   padding: var(--space-3) var(--space-2);
-  border: 1px solid var(--color-border-strong);
+  border: 1px solid var(--color-free-border);
   border-radius: var(--radius-md);
-  background: var(--color-surface);
+  background: var(--color-free-soft);
+  color: var(--color-free);
+  font-weight: 600;
   font-size: var(--text-sm);
   font-variant-numeric: tabular-nums;
   cursor: pointer;
@@ -16,21 +18,23 @@
 }
 
 .slot:hover:not(:disabled) {
-  border-color: var(--color-accent);
+  border-color: var(--color-free);
 }
 
 .slot:disabled {
   background: var(--color-surface-sunken);
   border-color: var(--color-border);
   color: var(--color-text-muted);
+  font-weight: 400;
   cursor: not-allowed;
   /* Struck through, so "taken" does not depend on colour alone. */
   text-decoration: line-through;
 }
 
-.selected {
-  background: var(--color-accent);
-  border-color: var(--color-accent);
+.selected,
+.selected:hover:not(:disabled) {
+  background: var(--color-picked);
+  border-color: var(--color-picked);
   color: var(--color-text-inverted);
   font-weight: 700;
 }

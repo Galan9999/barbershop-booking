@@ -22,6 +22,13 @@
   --color-warning-soft: #fffaeb;
   --color-success: #15803d;
 
+  /* Booking picker states: free days and hours read green, the one the
+     customer picked reads red, so the choice stands out at a glance. */
+  --color-free: #15803d;
+  --color-free-soft: #ecfdf3;
+  --color-free-border: #86efac;
+  --color-picked: #b42318;
+
   /* 4px scale. Nothing off-scale. */
   --space-1: 0.25rem;
   --space-2: 0.5rem;
