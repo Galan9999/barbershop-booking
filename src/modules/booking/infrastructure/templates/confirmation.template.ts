@@ -10,6 +10,8 @@ export interface ConfirmationEmailData {
   businessPhone: string | undefined;
   businessName: string;
   businessAddress: string;
+  /** Opens the address in Google Maps. */
+  mapsUrl: string;
   formattedDateTime: string;
   googleCalendarUrl: string;
   cancelUrl: string;
@@ -30,6 +32,7 @@ export function renderConfirmationText(data: ConfirmationEmailData): string {
     `  Barbero:  ${data.barberName}`,
     `  Precio:   ${data.priceLabel}. ${data.paymentNote}`,
     `  Dónde:    ${data.businessAddress}`,
+    `  Cómo llegar: ${data.mapsUrl}`,
     ...(data.businessPhone ? [`  Teléfono: ${data.businessPhone}`] : []),
     '',
     `Añadir a Google Calendar: ${data.googleCalendarUrl}`,
@@ -62,6 +65,7 @@ export function renderConfirmationHtml(data: ConfirmationEmailData): string {
     businessPhone: data.businessPhone ? escapeHtml(data.businessPhone) : undefined,
     businessName: escapeHtml(data.businessName),
     businessAddress: escapeHtml(data.businessAddress),
+    mapsUrl: escapeHtml(data.mapsUrl),
     formattedDateTime: escapeHtml(data.formattedDateTime),
     googleCalendarUrl: escapeHtml(data.googleCalendarUrl),
     cancelUrl: escapeHtml(data.cancelUrl),
@@ -85,7 +89,11 @@ export function renderConfirmationHtml(data: ConfirmationEmailData): string {
           <strong>Servicio:</strong> ${safe.serviceName}<br>
           <strong>Barbero:</strong> ${safe.barberName}<br>
           <strong>Precio:</strong> ${safe.priceLabel} · ${safe.paymentNote}<br>
-          <strong>Dónde:</strong> ${safe.businessAddress}${
+          <strong>Dónde:</strong> ${safe.businessAddress}<br>
+          <a href="${safe.mapsUrl}"
+             style="display:inline-block;margin-top:4px;padding:6px 12px;border:1px solid #c9bfae;border-radius:999px;background:#ffffff;color:#1c1917;text-decoration:none;font-size:13px;font-weight:bold;">
+            &#128205; Ver en Google Maps
+          </a>${
             safe.businessPhone
               ? `<br>\n          <strong>Teléfono:</strong> <a href="tel:${safe.businessPhone.replace(/\s/g, '')}" style="color:#7c2d12;">${safe.businessPhone}</a>`
               : ''

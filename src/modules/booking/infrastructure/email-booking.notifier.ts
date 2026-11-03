@@ -24,6 +24,7 @@ import {
   extractEmailAddress,
   type EmailTransport,
 } from '@/shared/infrastructure/email/transports/types';
+import { buildGoogleMapsUrl } from '@/shared/utils/maps/google-maps-url';
 import { formatPrice } from '@/shared/utils/money/format-price';
 
 interface NotifierOptions {
@@ -58,6 +59,7 @@ export class EmailBookingNotifier implements BookingNotifier {
       businessPhone: this.options.businessPhone,
       businessName: this.options.businessName,
       businessAddress: this.options.businessAddress,
+      mapsUrl: buildGoogleMapsUrl(this.options.businessAddress),
       formattedDateTime: notification.formattedDateTime,
       googleCalendarUrl: notification.googleCalendarUrl,
       cancelUrl: notification.cancelUrl,
