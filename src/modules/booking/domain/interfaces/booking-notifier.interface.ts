@@ -8,6 +8,9 @@ export interface BookingNotification {
   to: string;
   clientName: string;
   barberName: string;
+  serviceName: string;
+  /** In euros. */
+  price: number;
   formattedDateTime: string;
   googleCalendarUrl: string;
   cancelUrl: string;
@@ -20,6 +23,9 @@ export interface ShopNotification {
   clientEmail: string;
   clientPhone: string;
   barberName: string;
+  serviceName: string;
+  /** In euros. */
+  price: number;
   formattedDateTime: string;
   startsAt: Date;
   endsAt: Date;

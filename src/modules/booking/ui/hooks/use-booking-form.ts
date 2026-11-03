@@ -4,6 +4,7 @@ import { useCallback, useMemo, useState } from 'react';
 import type {
   AvailabilityDto,
   DayAvailabilityDto,
+  ServiceDto,
   SlotAvailabilityDto,
 } from '@/modules/booking/application/availability.service';
 import type { BookingConfirmationDto } from '@/modules/booking/application/dto/booking.dto';
@@ -18,6 +19,8 @@ interface UseBookingFormOptions {
 
 export interface BookingFormState {
   status: BookingFormStatus;
+  serviceId: string | undefined;
+  selectedService: ServiceDto | undefined;
   barber: string | undefined;
   dayKey: string | undefined;
   slotIso: string | undefined;
@@ -30,7 +33,9 @@ export interface BookingFormState {
   selectedDay: DayAvailabilityDto | undefined;
   availableDayKeys: string[];
   canSubmit: boolean;
+  /** True when the chosen service cannot start at this slot for this barber. */
   isSlotTaken: (slot: SlotAvailabilityDto) => boolean;
+  selectService: (serviceId: string) => void;
   selectBarber: (barber: string) => void;
   selectDay: (dayKey: string) => void;
   selectSlot: (iso: string) => void;
@@ -53,7 +58,10 @@ export function useBookingForm({
   initialBarber,
 }: UseBookingFormOptions): BookingFormState {
   const [status, setStatus] = useState<BookingFormStatus>('editing');
-  const [barber, setBarber] = useState<string | undefined>(initialBarber);
+  const [serviceId, setServiceId] = useState<string>();
+  // A one-barber shop has nothing to choose: preselect so the step can hide.
+  const onlyBarber = availability.barbers.length === 1 ? availability.barbers[0] : undefined;
+  const [barber, setBarber] = useState<string | undefined>(initialBarber ?? onlyBarber);
   const [dayKey, setDayKey] = useState<string | undefined>(availability.days[0]?.dayKey);
   const [slotIso, setSlotIso] = useState<string>();
   const [firstName, setFirstName] = useState('');
@@ -74,15 +82,45 @@ export function useBookingForm({
     [availability.days, dayKey],
   );
 
+  const selectedService = useMemo(
+    () => availability.services.find((service) => service.id === serviceId),
+    [availability.services, serviceId],
+  );
+
+  /**
+   * A service of N minutes needs N / slotMinutes consecutive free slots on the
+   * same day: an hour-long cut at 20:00 does not fit a shop that closes at
+   * 20:30, and one at 10:00 does not fit if 10:30 is booked. The server and
+   * the database enforce the same thing; this only keeps the grid honest.
+   */
   const isSlotTaken = useCallback(
     (slot: SlotAvailabilityDto): boolean => {
-      if (!barber) return false;
-      return (
-        slot.takenBy.includes(barber) || (takenSinceLoad[slot.iso] ?? []).includes(barber)
-      );
+      if (!barber || !selectedDay) return false;
+      const busy = (candidate: SlotAvailabilityDto) =>
+        candidate.takenBy.includes(barber) ||
+        (takenSinceLoad[candidate.iso] ?? []).includes(barber);
+
+      const needed = Math.max(1, (selectedService?.minutes ?? 0) / availability.slotMinutes);
+      const slotMs = availability.slotMinutes * 60_000;
+      const start = selectedDay.slots.findIndex((candidate) => candidate.iso === slot.iso);
+      if (start === -1) return true;
+
+      for (let offset = 0; offset < needed; offset += 1) {
+        const candidate = selectedDay.slots[start + offset];
+        const expected = new Date(Date.parse(slot.iso) + offset * slotMs).toISOString();
+        if (!candidate || candidate.iso !== expected || busy(candidate)) return true;
+      }
+      return false;
     },
-    [barber, takenSinceLoad],
+    [availability.slotMinutes, barber, selectedDay, selectedService, takenSinceLoad],
   );
+
+  const selectService = useCallback((next: string) => {
+    setServiceId(next);
+    // A longer service may no longer fit where the chosen time was.
+    setSlotIso(undefined);
+    setErrorMessage(undefined);
+  }, []);
 
   const selectBarber = useCallback((next: string) => {
     setBarber(next);
@@ -106,6 +144,7 @@ export function useBookingForm({
   const hasEnoughDigits = (clientPhone.match(/[0-9]/g) ?? []).length >= 7;
   const canSubmit =
     status === 'editing' &&
+    Boolean(serviceId) &&
     Boolean(barber) &&
     Boolean(slotIso) &&
     firstName.trim().length >= 2 &&
@@ -114,7 +153,7 @@ export function useBookingForm({
     hasEnoughDigits;
 
   const submit = useCallback(async () => {
-    if (!barber || !slotIso || status === 'submitting') return;
+    if (!serviceId || !barber || !slotIso || status === 'submitting') return;
     setStatus('submitting');
     setErrorMessage(undefined);
 
@@ -125,6 +164,7 @@ export function useBookingForm({
       client_phone: clientPhone.trim(),
       date_time: slotIso,
       barber_name: barber,
+      service_id: serviceId,
     });
 
     if (result.ok) {
@@ -144,10 +184,12 @@ export function useBookingForm({
       return;
     }
     setErrorMessage(result.message);
-  }, [barber, clientEmail, clientPhone, firstName, lastName, slotIso, status]);
+  }, [barber, clientEmail, clientPhone, firstName, lastName, serviceId, slotIso, status]);
 
   return {
     status,
+    serviceId,
+    selectedService,
     barber,
     dayKey,
     slotIso,
@@ -161,6 +203,7 @@ export function useBookingForm({
     availableDayKeys,
     canSubmit,
     isSlotTaken,
+    selectService,
     selectBarber,
     selectDay,
     selectSlot,

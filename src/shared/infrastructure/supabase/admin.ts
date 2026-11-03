@@ -16,3 +16,6 @@ export const supabaseAdmin = createClient<Database>(
 
 /** Postgres unique_violation: our slot-taken signal from the partial index. */
 export const PG_UNIQUE_VIOLATION = '23505';
+
+/** Postgres exclusion_violation: two confirmed bookings of a barber overlap. */
+export const PG_EXCLUSION_VIOLATION = '23P01';

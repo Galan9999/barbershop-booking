@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { BARBERS } from '@/shared/config/business.config';
+import { BARBERS, SERVICES } from '@/shared/config/business.config';
 
 /**
  * Input and output contracts of the booking use cases.
@@ -40,6 +40,12 @@ export const reserveSchema = z.object({
     .string()
     .trim()
     .refine((name) => BARBERS.includes(name), 'Ese peluquero no existe'),
+  // Also configuration-driven. The duration and price are looked up on the
+  // server from this id: the client never says how long or how much.
+  service_id: z
+    .string()
+    .trim()
+    .refine((id) => SERVICES.some((service) => service.id === id), 'Ese servicio no existe'),
 });
 export type ReserveRequestDto = z.infer<typeof reserveSchema>;
 
@@ -55,6 +61,9 @@ export interface BookingConfirmationDto {
     client_name: string;
     date_time: string;
     barber_name: string;
+    service_name: string;
+    /** Euros. */
+    service_price: number;
     status: 'confirmed';
   };
   formatted_date_time: string;
@@ -75,6 +84,7 @@ export interface AppointmentViewDto {
   clientName: string;
   clientPhone: string;
   barberName: string;
+  serviceName: string;
   formattedDateTime: string;
   status: 'confirmed' | 'cancelled';
   canBeCancelled: boolean;

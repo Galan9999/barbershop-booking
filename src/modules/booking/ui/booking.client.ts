@@ -12,6 +12,7 @@ export interface ReserveRequest {
   client_phone: string;
   date_time: string;
   barber_name: string;
+  service_id: string;
 }
 
 export type ReserveResult =

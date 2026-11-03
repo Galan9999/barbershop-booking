@@ -8,6 +8,7 @@ export type BookingErrorCode =
   | 'OUTSIDE_OPENING_HOURS'
   | 'TOO_SOON'
   | 'TOO_FAR_AHEAD'
+  | 'UNKNOWN_SERVICE'
   | 'TOKEN_NOT_FOUND'
   | 'APPOINTMENT_IN_PAST'
   | 'STORAGE_FAILURE';

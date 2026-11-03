@@ -16,7 +16,11 @@ export interface AppointmentProps {
   clientLastName: string;
   clientEmail: string;
   clientPhone: string;
+  serviceName: string;
+  /** Euros, as quoted when booked. */
+  price: number;
   startsAt: Date;
+  endsAt: Date;
   barberName: string;
   status: AppointmentStatus;
   cancelToken: string;
@@ -28,7 +32,10 @@ export class Appointment {
   readonly clientLastName: string;
   readonly clientEmail: string;
   readonly clientPhone: string;
+  readonly serviceName: string;
+  readonly price: number;
   readonly startsAt: Date;
+  readonly endsAt: Date;
   readonly barberName: string;
   readonly status: AppointmentStatus;
   readonly cancelToken: string;
@@ -39,7 +46,10 @@ export class Appointment {
     this.clientLastName = props.clientLastName;
     this.clientEmail = props.clientEmail;
     this.clientPhone = props.clientPhone;
+    this.serviceName = props.serviceName;
+    this.price = props.price;
     this.startsAt = props.startsAt;
+    this.endsAt = props.endsAt;
     this.barberName = props.barberName;
     this.status = props.status;
     this.cancelToken = props.cancelToken;
@@ -81,9 +91,5 @@ export class Appointment {
       );
     }
     return null;
-  }
-
-  endsAt(durationMinutes: number): Date {
-    return new Date(this.startsAt.getTime() + durationMinutes * 60_000);
   }
 }

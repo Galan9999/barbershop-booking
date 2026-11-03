@@ -1,6 +1,10 @@
 import { getAvailabilityService } from '@/modules/booking/booking.module';
 import { BookingForm } from '@/modules/booking/ui/components/BookingForm/BookingForm';
-import { BUSINESS_ADDRESS, BUSINESS_NAME } from '@/shared/config/business.config';
+import {
+  BUSINESS_ADDRESS,
+  BUSINESS_NAME,
+  BUSINESS_PHONE,
+} from '@/shared/config/business.config';
 import { Callout } from '@/shared/ui/components/Callout/Callout';
 import styles from './page.module.css';
 
@@ -40,6 +44,7 @@ export default async function BookPage({
       <BookingForm
         availability={availability}
         businessAddress={BUSINESS_ADDRESS}
+        businessPhone={BUSINESS_PHONE}
         initialBarber={initialBarber}
       />
     </main>

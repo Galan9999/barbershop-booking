@@ -5,6 +5,9 @@ export interface ShopNoticeData {
   clientEmail: string;
   clientPhone: string;
   barberName: string;
+  serviceName: string;
+  /** Already formatted, e.g. "15 €". */
+  priceLabel: string;
   formattedDateTime: string;
 }
 
@@ -33,6 +36,8 @@ export function renderShopNoticeText(
     heading,
     '',
     `  Cuándo:   ${data.formattedDateTime}`,
+    `  Servicio: ${data.serviceName}`,
+    `  Precio:   ${data.priceLabel} (en efectivo)`,
     `  Barbero:  ${data.barberName}`,
     `  Cliente:  ${data.clientName}`,
     `  Teléfono: ${data.clientPhone}`,
@@ -54,6 +59,8 @@ export function renderShopNoticeHtml(
     clientEmail: escapeHtml(data.clientEmail),
     clientPhone: escapeHtml(data.clientPhone),
     barberName: escapeHtml(data.barberName),
+    serviceName: escapeHtml(data.serviceName),
+    priceLabel: escapeHtml(data.priceLabel),
     formattedDateTime: escapeHtml(data.formattedDateTime),
   };
   const accent = booked ? '#7c2d12' : '#b42318';
@@ -70,6 +77,8 @@ export function renderShopNoticeHtml(
         </td></tr>
         <tr><td style="font-size:15px;line-height:1.8;background:#f5f2ed;border-radius:10px;padding:16px;">
           <strong>Cuándo:</strong> ${safe.formattedDateTime}<br>
+          <strong>Servicio:</strong> ${safe.serviceName}<br>
+          <strong>Precio:</strong> ${safe.priceLabel} (en efectivo)<br>
           <strong>Barbero:</strong> ${safe.barberName}<br>
           <strong>Cliente:</strong> ${safe.clientName}<br>
           <strong>Teléfono:</strong> <a href="tel:${safe.clientPhone}" style="color:${accent};">${safe.clientPhone}</a><br>

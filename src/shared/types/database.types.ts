@@ -13,7 +13,11 @@ export type AppointmentRow = {
   client_last_name: string;
   client_email: string;
   client_phone: string;
+  service_name: string;
+  /** numeric(8,2); PostgREST returns it as a JSON number. */
+  price: number;
   date_time: string; // timestamptz as ISO string
+  ends_at: string; // timestamptz as ISO string
   barber_name: string;
   status: AppointmentStatus;
   cancel_token: string;
@@ -26,7 +30,10 @@ export type AppointmentInsert = {
   client_last_name: string;
   client_email: string;
   client_phone: string;
+  service_name: string;
+  price: number;
   date_time: string;
+  ends_at: string;
   barber_name: string;
 };
 

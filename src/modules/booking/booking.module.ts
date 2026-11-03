@@ -8,6 +8,9 @@ import {
   BARBERS,
   BUSINESS_ADDRESS,
   BUSINESS_NAME,
+  BUSINESS_PHONE,
+  PAYMENT_NOTE,
+  SERVICES,
 } from '@/shared/config/business.config';
 import { env } from '@/shared/config/env';
 import { getEmailTransport } from '@/shared/infrastructure/email/transport';
@@ -39,12 +42,15 @@ export function getBookingService(): BookingService {
       businessAddress: BUSINESS_ADDRESS,
       businessEmail: env.BUSINESS_EMAIL,
       emailFrom: env.EMAIL_FROM,
+      paymentNote: PAYMENT_NOTE,
+      businessPhone: BUSINESS_PHONE,
     }),
     clock: systemClock,
     timeZone: env.BUSINESS_TIMEZONE,
     appUrl: env.NEXT_PUBLIC_APP_URL,
     businessName: BUSINESS_NAME,
     businessAddress: BUSINESS_ADDRESS,
+    services: SERVICES,
   });
   return bookingService;
 }
@@ -55,6 +61,8 @@ export function getAvailabilityService(): AvailabilityService {
     clock: systemClock,
     timeZone: env.BUSINESS_TIMEZONE,
     barbers: BARBERS,
+    services: SERVICES,
+    paymentNote: PAYMENT_NOTE,
   });
   return availabilityService;
 }

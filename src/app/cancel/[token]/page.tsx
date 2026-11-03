@@ -48,6 +48,10 @@ export default async function CancelPage({
                 <dd>{appointment.formattedDateTime}</dd>
               </div>
               <div className={styles.row}>
+                <dt>Servicio</dt>
+                <dd>{appointment.serviceName}</dd>
+              </div>
+              <div className={styles.row}>
                 <dt>Barbero</dt>
                 <dd>{appointment.barberName}</dd>
               </div>

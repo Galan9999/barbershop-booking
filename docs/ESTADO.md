@@ -48,13 +48,20 @@ La alternativa que no falla es conectar con la interfaz de Google Calendar media
 autorización OAuth, con lo que la aplicación escribiría el evento directamente. Es más
 trabajo y requiere credenciales en Google Cloud.
 
-### 3. No hay jornada partida
+### 3. Quitar la compatibilidad temporal de la migración de servicios
+
+`20261103200000_add_service_and_end_time.sql` deja un valor por defecto en
+`service_name` y `price` y un trigger que rellena `ends_at`, para que el código
+anterior siguiera funcionando durante el despliegue. Ya no hacen falta: una migración
+posterior debe quitarlos (los comandos están en el propio fichero).
+
+### 4. No hay jornada partida
 
 `BUSINESS_OPENING_HOURS` admite un único tramo por día. Una peluquería que cierre a
 mediodía no se puede configurar todavía: haría falta aceptar una lista de tramos por
 día en lugar de un solo `{open, close}`.
 
-### 4. No hay panel de administración
+### 5. No hay panel de administración
 
 Las citas se consultan en el SQL Editor de Supabase. Se descartó el panel
 deliberadamente; el correo con la invitación de calendario cubre la necesidad diaria.

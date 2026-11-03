@@ -33,7 +33,7 @@ export function SlotPicker({ slots, selectedIso, isTaken, onSelect }: SlotPicker
             type="button"
             role="radio"
             aria-checked={isSelected}
-            aria-label={taken ? `${slot.timeLabel}, ocupada` : slot.timeLabel}
+            aria-label={taken ? `${slot.timeLabel}, no disponible` : slot.timeLabel}
             disabled={taken}
             className={`${styles.slot} ${isSelected ? styles.selected : ''}`}
             onClick={() => onSelect(slot.iso)}

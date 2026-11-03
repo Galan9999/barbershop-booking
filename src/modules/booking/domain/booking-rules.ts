@@ -1,5 +1,4 @@
 import {
-  APPOINTMENT_MINUTES,
   MAX_ADVANCE_DAYS,
   MIN_ADVANCE_MINUTES,
   OPENING_HOURS,
@@ -16,6 +15,7 @@ import { DAY_MS, MINUTE_MS, isSlotAligned, isWithinOpeningHours } from '@/shared
 
 export function getUnbookableReason(
   start: Date,
+  durationMinutes: number,
   now: Date,
   timeZone: string,
 ): BookingError | null {
@@ -33,18 +33,28 @@ export function getUnbookableReason(
   }
   if (
     !isSlotAligned(start, SLOT_MINUTES, timeZone) ||
-    !isWithinOpeningHours(start, APPOINTMENT_MINUTES, OPENING_HOURS, timeZone)
+    !isWithinOpeningHours(start, durationMinutes, OPENING_HOURS, timeZone)
   ) {
     return new BookingError('OUTSIDE_OPENING_HOURS', 'That time is not available for booking.');
   }
   return null;
 }
 
-export function isBookable(start: Date, now: Date, timeZone: string): boolean {
-  return getUnbookableReason(start, now, timeZone) === null;
+export function isBookable(
+  start: Date,
+  durationMinutes: number,
+  now: Date,
+  timeZone: string,
+): boolean {
+  return getUnbookableReason(start, durationMinutes, now, timeZone) === null;
 }
 
-export function assertBookable(start: Date, now: Date, timeZone: string): void {
-  const reason = getUnbookableReason(start, now, timeZone);
+export function assertBookable(
+  start: Date,
+  durationMinutes: number,
+  now: Date,
+  timeZone: string,
+): void {
+  const reason = getUnbookableReason(start, durationMinutes, now, timeZone);
   if (reason) throw reason;
 }

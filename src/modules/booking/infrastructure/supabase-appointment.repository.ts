@@ -3,11 +3,16 @@ import { BookingError } from '@/modules/booking/domain/booking-errors';
 import { Appointment } from '@/modules/booking/domain/entities/appointment.entity';
 import type {
   AppointmentRepository,
+  BookedInterval,
   NewAppointmentData,
 } from '@/modules/booking/domain/interfaces/appointment-repository.interface';
 import { SlotAlreadyTakenError } from '@/modules/booking/domain/interfaces/appointment-repository.interface';
-import { TimeSlot } from '@/modules/booking/domain/value-objects/time-slot';
-import { PG_UNIQUE_VIOLATION, supabaseAdmin } from '@/shared/infrastructure/supabase/admin';
+import type { TimeSlot } from '@/modules/booking/domain/value-objects/time-slot';
+import {
+  PG_EXCLUSION_VIOLATION,
+  PG_UNIQUE_VIOLATION,
+  supabaseAdmin,
+} from '@/shared/infrastructure/supabase/admin';
 import type { AppointmentRow } from '@/shared/types/database.types';
 
 /**
@@ -21,7 +26,7 @@ import type { AppointmentRow } from '@/shared/types/database.types';
 /* eslint-disable-next-line max-len -- supabase-js infers the row type from this
    literal, so it cannot be split or concatenated. */
 const ENTITY_COLUMNS =
-  'id, client_first_name, client_last_name, client_email, client_phone, date_time, barber_name, status, cancel_token';
+  'id, client_first_name, client_last_name, client_email, client_phone, service_name, price, date_time, ends_at, barber_name, status, cancel_token';
 
 type EntityRow = Pick<
   AppointmentRow,
@@ -30,7 +35,10 @@ type EntityRow = Pick<
   | 'client_last_name'
   | 'client_email'
   | 'client_phone'
+  | 'service_name'
+  | 'price'
   | 'date_time'
+  | 'ends_at'
   | 'barber_name'
   | 'status'
   | 'cancel_token'
@@ -43,7 +51,11 @@ function toEntity(row: EntityRow): Appointment {
     clientLastName: row.client_last_name,
     clientEmail: row.client_email,
     clientPhone: row.client_phone,
+    serviceName: row.service_name,
+    // numeric can arrive as a string depending on the driver; normalise here.
+    price: Number(row.price),
     startsAt: new Date(row.date_time),
+    endsAt: new Date(row.ends_at),
     barberName: row.barber_name,
     status: row.status,
     cancelToken: row.cancel_token,
@@ -52,9 +64,10 @@ function toEntity(row: EntityRow): Appointment {
 
 export class SupabaseAppointmentRepository implements AppointmentRepository {
   /**
-   * Slot uniqueness is decided by the partial index
-   * `appointments_active_slot_uq`, never by a prior read: a 23505 here is the
-   * database rejecting a real race between concurrent requests.
+   * Clashes are decided by the database, never by a prior read: the exclusion
+   * constraint `appointments_no_overlap_ex` rejects any overlap (23P01) and the
+   * partial index `appointments_active_slot_uq` the exact same start (23505).
+   * Either one is a real race between concurrent requests.
    */
   async create(data: NewAppointmentData): Promise<Appointment> {
     const { data: row, error } = await supabaseAdmin
@@ -64,14 +77,19 @@ export class SupabaseAppointmentRepository implements AppointmentRepository {
         client_last_name: data.clientLastName,
         client_email: data.clientEmail,
         client_phone: data.clientPhone,
+        service_name: data.serviceName,
+        price: data.price,
         date_time: data.startsAt.toISOString(),
+        ends_at: data.endsAt.toISOString(),
         barber_name: data.barberName,
       })
       .select(ENTITY_COLUMNS)
       .single();
 
     if (error) {
-      if (error.code === PG_UNIQUE_VIOLATION) throw new SlotAlreadyTakenError();
+      if (error.code === PG_UNIQUE_VIOLATION || error.code === PG_EXCLUSION_VIOLATION) {
+        throw new SlotAlreadyTakenError();
+      }
       console.error('[appointments] insert failed', { code: error.code });
       throw new BookingError('STORAGE_FAILURE', 'Could not create the booking.');
     }
@@ -130,19 +148,27 @@ export class SupabaseAppointmentRepository implements AppointmentRepository {
     return data !== null;
   }
 
-  /** Returns null when the lookup fails, so callers can degrade gracefully. */
-  async findConfirmedBetween(from: Date, to: Date): Promise<TimeSlot[] | null> {
+  /**
+   * Overlap test on [from, to): starts before the window ends and ends after
+   * it begins. Returns null when the lookup fails, so callers can degrade
+   * gracefully.
+   */
+  async findConfirmedBetween(from: Date, to: Date): Promise<BookedInterval[] | null> {
     const { data, error } = await supabaseAdmin
       .from('appointments')
-      .select('date_time, barber_name')
+      .select('date_time, ends_at, barber_name')
       .eq('status', 'confirmed')
-      .gte('date_time', from.toISOString())
-      .lte('date_time', to.toISOString());
+      .lt('date_time', to.toISOString())
+      .gt('ends_at', from.toISOString());
 
     if (error) {
       console.error('[appointments] busy-slots query failed', { code: error.code });
       return null;
     }
-    return data.map((row) => new TimeSlot(row.barber_name, new Date(row.date_time)));
+    return data.map((row) => ({
+      barberName: row.barber_name,
+      startsAt: new Date(row.date_time),
+      endsAt: new Date(row.ends_at),
+    }));
   }
 }

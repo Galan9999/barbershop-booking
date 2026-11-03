@@ -5,6 +5,7 @@ import type { AvailabilityDto } from '@/modules/booking/application/availability
 import { BarberPicker } from '@/modules/booking/ui/components/BarberPicker/BarberPicker';
 import { BookingCalendar } from '@/modules/booking/ui/components/BookingCalendar/BookingCalendar';
 import { BookingConfirmation } from '@/modules/booking/ui/components/BookingConfirmation/BookingConfirmation';
+import { ServicePicker } from '@/modules/booking/ui/components/ServicePicker/ServicePicker';
 import { SlotPicker } from '@/modules/booking/ui/components/SlotPicker/SlotPicker';
 import { useBookingForm } from '@/modules/booking/ui/hooks/use-booking-form';
 import { Button } from '@/shared/ui/components/Button/Button';
@@ -15,6 +16,7 @@ import styles from './BookingForm.module.css';
 interface BookingFormProps {
   availability: AvailabilityDto;
   businessAddress: string;
+  businessPhone?: string;
   initialBarber?: string;
 }
 
@@ -25,6 +27,7 @@ interface BookingFormProps {
 export function BookingForm({
   availability,
   businessAddress,
+  businessPhone,
   initialBarber,
 }: BookingFormProps) {
   const form = useBookingForm({ availability, initialBarber });
@@ -34,9 +37,17 @@ export function BookingForm({
       <BookingConfirmation
         confirmation={form.confirmation}
         businessAddress={businessAddress}
+        businessPhone={businessPhone}
+        paymentNote={availability.paymentNote}
       />
     );
   }
+
+  // With a single barber there is nothing to choose, so that step is skipped
+  // and the numbering closes up.
+  const showBarberStep = availability.barbers.length > 1;
+  let step = 0;
+  const nextStep = () => (step += 1);
 
   function handleSubmit(event: FormEvent) {
     event.preventDefault();
@@ -47,18 +58,32 @@ export function BookingForm({
     <form className={styles.form} onSubmit={handleSubmit} noValidate>
       <section className={styles.step}>
         <h2 className={styles.stepTitle}>
-          <span className={styles.stepNumber}>1</span> Elige barbero
+          <span className={styles.stepNumber}>{nextStep()}</span> Elige servicio
         </h2>
-        <BarberPicker
-          barbers={availability.barbers}
-          selected={form.barber}
-          onSelect={form.selectBarber}
+        <ServicePicker
+          services={availability.services}
+          selected={form.serviceId}
+          paymentNote={availability.paymentNote}
+          onSelect={form.selectService}
         />
       </section>
 
+      {showBarberStep && (
+        <section className={styles.step}>
+          <h2 className={styles.stepTitle}>
+            <span className={styles.stepNumber}>{nextStep()}</span> Elige barbero
+          </h2>
+          <BarberPicker
+            barbers={availability.barbers}
+            selected={form.barber}
+            onSelect={form.selectBarber}
+          />
+        </section>
+      )}
+
       <section className={styles.step}>
         <h2 className={styles.stepTitle}>
-          <span className={styles.stepNumber}>2</span> Elige día
+          <span className={styles.stepNumber}>{nextStep()}</span> Elige día
         </h2>
         <BookingCalendar
           availableDayKeys={form.availableDayKeys}
@@ -69,9 +94,11 @@ export function BookingForm({
 
       <section className={styles.step}>
         <h2 className={styles.stepTitle}>
-          <span className={styles.stepNumber}>3</span> Elige hora
+          <span className={styles.stepNumber}>{nextStep()}</span> Elige hora
         </h2>
-        {!form.barber ? (
+        {!form.serviceId ? (
+          <p className={styles.placeholder}>Primero elige el servicio.</p>
+        ) : !form.barber ? (
           <p className={styles.placeholder}>Primero elige con qué barbero quieres ir.</p>
         ) : (
           <SlotPicker
@@ -85,7 +112,7 @@ export function BookingForm({
 
       <section className={styles.step}>
         <h2 className={styles.stepTitle}>
-          <span className={styles.stepNumber}>4</span> Tus datos
+          <span className={styles.stepNumber}>{nextStep()}</span> Tus datos
         </h2>
         <div className={styles.fields}>
           <div className={styles.fieldRow}>

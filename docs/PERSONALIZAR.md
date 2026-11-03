@@ -41,12 +41,32 @@ Tiene que ir en una sola línea. Las horas en formato `HH:mm` de 24 horas.
 | Variable | Qué es | Por defecto |
 |---|---|---|
 | `BUSINESS_SLOT_MINUTES` | Cada cuánto empieza una cita | 30 |
-| `BUSINESS_APPOINTMENT_MINUTES` | Cuánto dura | 30 |
 | `BUSINESS_MIN_ADVANCE_MINUTES` | Antelación mínima para reservar | 60 |
 | `BUSINESS_MAX_ADVANCE_DAYS` | Hasta cuántos días vista se abre | 30 |
 
-La duración debe ser múltiplo del hueco, o la rejilla de horas dejaría espacios
-imposibles de reservar. El sistema lo comprueba y se niega a arrancar si no cuadra.
+### Servicios y precios
+
+`BUSINESS_SERVICES` es la lista de lo que se puede reservar, con su duración en
+minutos y su precio en euros. JSON en una sola línea. Por defecto:
+
+```json
+[{"id":"haircut","label":"Corte de pelo","minutes":30,"price":15},{"id":"beard","label":"Barba","minutes":30,"price":15},{"id":"haircut_beard","label":"Corte y barba","minutes":60,"price":30}]
+```
+
+Cada duración debe ser múltiplo de `BUSINESS_SLOT_MINUTES`, o la rejilla dejaría
+espacios imposibles de reservar; el sistema se niega a arrancar si no cuadra. Una
+cita larga ocupa varios huecos seguidos y tiene que acabar antes del cierre.
+
+El precio sale en el formulario y en los dos correos (cliente y peluquería) y se
+guarda con la cita, así que cambiarlo no altera lo que ya se dijo a nadie. El
+`id` no se debe cambiar una vez en uso; la `label` sí.
+
+| Variable | Qué es | Por defecto |
+|---|---|---|
+| `BUSINESS_PAYMENT_NOTE` | Cómo se paga, junto al precio | `Se paga en efectivo en la barbería.` |
+| `BUSINESS_PHONE` | Teléfono de la peluquería, en el correo y en la confirmación | (no se muestra) |
+
+Con un único peluquero en `BUSINESS_BARBERS`, el paso de elegir barbero no aparece.
 
 ### Colores y tipografía
 

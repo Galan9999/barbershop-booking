@@ -12,15 +12,26 @@ export interface NewAppointmentData {
   clientLastName: string;
   clientEmail: string;
   clientPhone: string;
+  serviceName: string;
+  price: number;
   startsAt: Date;
+  endsAt: Date;
   barberName: string;
+}
+
+/** Time a barber is already committed to, as the availability grid needs it. */
+export interface BookedInterval {
+  barberName: string;
+  startsAt: Date;
+  endsAt: Date;
 }
 
 export interface AppointmentRepository {
   /**
-   * Persists a booking. Implementations MUST rely on a uniqueness constraint
-   * for the slot rather than a prior read, and MUST signal a lost race by
-   * throwing SlotAlreadyTakenError.
+   * Persists a booking. Implementations MUST rely on a database constraint
+   * rather than a prior read to reject a booking that overlaps another
+   * confirmed one of the same barber (not just one with the same start), and
+   * MUST signal that lost race by throwing SlotAlreadyTakenError.
    */
   create(data: NewAppointmentData): Promise<Appointment>;
 
@@ -34,7 +45,11 @@ export interface AppointmentRepository {
    */
   cancel(token: string, now: Date): Promise<boolean>;
 
-  findConfirmedBetween(from: Date, to: Date): Promise<TimeSlot[] | null>;
+  /**
+   * Confirmed bookings that overlap [from, to), including one that started
+   * before `from` and is still running. Null when the lookup fails.
+   */
+  findConfirmedBetween(from: Date, to: Date): Promise<BookedInterval[] | null>;
 }
 
 /** Thrown by an implementation when the slot was taken concurrently. */

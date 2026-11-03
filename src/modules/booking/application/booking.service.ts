@@ -14,9 +14,14 @@ import { SlotAlreadyTakenError } from '@/modules/booking/domain/interfaces/appoi
 import type { BookingNotifier } from '@/modules/booking/domain/interfaces/booking-notifier.interface';
 import type { Clock } from '@/modules/booking/domain/interfaces/clock.interface';
 import { TimeSlot } from '@/modules/booking/domain/value-objects/time-slot';
-import { APPOINTMENT_MINUTES } from '@/shared/config/business.config';
+import type { BookableService } from '@/shared/config/business.config';
 import { buildGoogleCalendarUrl } from '@/shared/utils/calendar/google-calendar-url';
-import { formatFullDateTime } from '@/shared/utils/datetime';
+import { addMinutes, formatFullDateTime } from '@/shared/utils/datetime';
+
+/** What a client asks for. Duration and price come from the catalog, not from them. */
+export type CreateBookingInput = Omit<NewAppointmentData, 'serviceName' | 'price' | 'endsAt'> & {
+  serviceId: string;
+};
 
 /** Everything the use cases need from the outside world, injected explicitly. */
 export interface BookingServiceDependencies {
@@ -27,6 +32,7 @@ export interface BookingServiceDependencies {
   appUrl: string;
   businessName: string;
   businessAddress: string;
+  services: readonly BookableService[];
 }
 
 /**
@@ -41,9 +47,23 @@ export class BookingService {
     this.deps = dependencies;
   }
 
-  async createBooking(data: NewAppointmentData): Promise<BookingConfirmationDto> {
+  async createBooking(input: CreateBookingInput): Promise<BookingConfirmationDto> {
+    const { serviceId, ...rest } = input;
+    const service = this.deps.services.find((candidate) => candidate.id === serviceId);
+    if (!service) {
+      throw new BookingError('UNKNOWN_SERVICE', 'That service is not offered.');
+    }
+
     const now = this.deps.clock.now();
-    assertBookable(data.startsAt, now, this.deps.timeZone);
+    // The whole service has to fit before closing, not just its first slot.
+    assertBookable(rest.startsAt, service.minutes, now, this.deps.timeZone);
+
+    const data: NewAppointmentData = {
+      ...rest,
+      serviceName: service.label,
+      price: service.price,
+      endsAt: addMinutes(rest.startsAt, service.minutes),
+    };
 
     let appointment: Appointment;
     try {
@@ -59,6 +79,8 @@ export class BookingService {
       to: appointment.clientEmail,
       clientName: appointment.fullName,
       barberName: appointment.barberName,
+      serviceName: appointment.serviceName,
+      price: appointment.price,
       formattedDateTime: this.formatDateTime(appointment.startsAt),
       googleCalendarUrl: this.buildCalendarUrl(appointment),
       cancelUrl: this.buildCancelUrl(appointment.cancelToken),
@@ -106,6 +128,7 @@ export class BookingService {
       clientName: appointment.fullName,
       clientPhone: appointment.clientPhone,
       barberName: appointment.barberName,
+      serviceName: appointment.serviceName,
       formattedDateTime: this.formatDateTime(appointment.startsAt),
       status: appointment.status,
       canBeCancelled: appointment.canBeCancelledAt(this.deps.clock.now()),
@@ -113,8 +136,9 @@ export class BookingService {
   }
 
   /**
-   * A unique-constraint rejection means either a genuine race or the same
-   * client submitting twice. Only the second is safe to report as success.
+   * A constraint rejection means either a genuine race (or an overlap with
+   * another booking) or the same client submitting twice. Only the second,
+   * an existing booking of theirs at that exact start, is reported as success.
    */
   private async resolveLostRace(data: NewAppointmentData): Promise<BookingConfirmationDto> {
     const existing = await this.deps.repository.findConfirmedAt(
@@ -137,9 +161,11 @@ export class BookingService {
       clientEmail: appointment.clientEmail,
       clientPhone: appointment.clientPhone,
       barberName: appointment.barberName,
+      serviceName: appointment.serviceName,
+      price: appointment.price,
       formattedDateTime: this.formatDateTime(appointment.startsAt),
       startsAt: appointment.startsAt,
-      endsAt: appointment.endsAt(APPOINTMENT_MINUTES),
+      endsAt: appointment.endsAt,
     };
     try {
       const { sent } =
@@ -165,10 +191,12 @@ export class BookingService {
 
   private buildCalendarUrl(appointment: Appointment): string {
     return buildGoogleCalendarUrl({
-      title: `${this.deps.businessName} — ${appointment.barberName}`,
+      title: `${this.deps.businessName} — ${appointment.serviceName}`,
       start: appointment.startsAt,
-      end: appointment.endsAt(APPOINTMENT_MINUTES),
-      details: `Cita con ${appointment.barberName}. Reserva a nombre de ${appointment.fullName}.`,
+      end: appointment.endsAt,
+      details:
+        `${appointment.serviceName} con ${appointment.barberName}. ` +
+        `Reserva a nombre de ${appointment.fullName}.`,
       location: this.deps.businessAddress,
     });
   }
@@ -183,6 +211,8 @@ export class BookingService {
         client_name: appointment.fullName,
         date_time: appointment.startsAt.toISOString(),
         barber_name: appointment.barberName,
+        service_name: appointment.serviceName,
+        service_price: appointment.price,
         status: 'confirmed',
       },
       formatted_date_time: this.formatDateTime(appointment.startsAt),

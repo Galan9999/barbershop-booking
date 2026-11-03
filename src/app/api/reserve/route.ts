@@ -20,6 +20,7 @@ export function POST(request: Request): Promise<NextResponse> {
         clientPhone: input.client_phone,
         startsAt: input.date_time,
         barberName: input.barber_name,
+        serviceId: input.service_id,
       });
       return { body: confirmation, status: confirmation.idempotent_replay ? 200 : 201 };
     },

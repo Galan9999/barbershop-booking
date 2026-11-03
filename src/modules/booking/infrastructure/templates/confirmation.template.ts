@@ -3,6 +3,11 @@
 export interface ConfirmationEmailData {
   clientName: string;
   barberName: string;
+  serviceName: string;
+  /** Already formatted, e.g. "15 €". */
+  priceLabel: string;
+  paymentNote: string;
+  businessPhone: string | undefined;
   businessName: string;
   businessAddress: string;
   formattedDateTime: string;
@@ -20,9 +25,12 @@ export function renderConfirmationText(data: ConfirmationEmailData): string {
     '',
     `Tu cita en ${data.businessName} está confirmada:`,
     '',
-    `  Cuándo:  ${data.formattedDateTime}`,
-    `  Barbero: ${data.barberName}`,
-    `  Dónde:   ${data.businessAddress}`,
+    `  Cuándo:   ${data.formattedDateTime}`,
+    `  Servicio: ${data.serviceName}`,
+    `  Barbero:  ${data.barberName}`,
+    `  Precio:   ${data.priceLabel}. ${data.paymentNote}`,
+    `  Dónde:    ${data.businessAddress}`,
+    ...(data.businessPhone ? [`  Teléfono: ${data.businessPhone}`] : []),
     '',
     `Añadir a Google Calendar: ${data.googleCalendarUrl}`,
     '',
@@ -48,6 +56,10 @@ export function renderConfirmationHtml(data: ConfirmationEmailData): string {
   const safe = {
     clientName: escapeHtml(data.clientName),
     barberName: escapeHtml(data.barberName),
+    serviceName: escapeHtml(data.serviceName),
+    priceLabel: escapeHtml(data.priceLabel),
+    paymentNote: escapeHtml(data.paymentNote),
+    businessPhone: data.businessPhone ? escapeHtml(data.businessPhone) : undefined,
     businessName: escapeHtml(data.businessName),
     businessAddress: escapeHtml(data.businessAddress),
     formattedDateTime: escapeHtml(data.formattedDateTime),
@@ -70,8 +82,14 @@ export function renderConfirmationHtml(data: ConfirmationEmailData): string {
         </td></tr>
         <tr><td style="font-size:15px;line-height:1.7;background:#f5f2ed;border-radius:10px;padding:16px;">
           <strong>Cuándo:</strong> ${safe.formattedDateTime}<br>
+          <strong>Servicio:</strong> ${safe.serviceName}<br>
           <strong>Barbero:</strong> ${safe.barberName}<br>
-          <strong>Dónde:</strong> ${safe.businessAddress}
+          <strong>Precio:</strong> ${safe.priceLabel} · ${safe.paymentNote}<br>
+          <strong>Dónde:</strong> ${safe.businessAddress}${
+            safe.businessPhone
+              ? `<br>\n          <strong>Teléfono:</strong> <a href="tel:${safe.businessPhone.replace(/\s/g, '')}" style="color:#7c2d12;">${safe.businessPhone}</a>`
+              : ''
+          }
         </td></tr>
         <tr><td align="center" style="padding-top:24px;">
           <a href="${safe.googleCalendarUrl}"

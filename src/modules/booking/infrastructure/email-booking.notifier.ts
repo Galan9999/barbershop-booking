@@ -24,6 +24,7 @@ import {
   extractEmailAddress,
   type EmailTransport,
 } from '@/shared/infrastructure/email/transports/types';
+import { formatPrice } from '@/shared/utils/money/format-price';
 
 interface NotifierOptions {
   transport: EmailTransport;
@@ -33,6 +34,10 @@ interface NotifierOptions {
   businessEmail: string;
   /** The From header. Its address must also be the invitation's organizer. */
   emailFrom: string;
+  /** How the client pays, shown under the price. */
+  paymentNote: string;
+  /** Shown to the client so they can call the shop. Optional. */
+  businessPhone: string | undefined;
 }
 
 /** Email implementation of the BookingNotifier port. */
@@ -47,6 +52,10 @@ export class EmailBookingNotifier implements BookingNotifier {
     const data = {
       clientName: notification.clientName,
       barberName: notification.barberName,
+      serviceName: notification.serviceName,
+      priceLabel: formatPrice(notification.price),
+      paymentNote: this.options.paymentNote,
+      businessPhone: this.options.businessPhone,
       businessName: this.options.businessName,
       businessAddress: this.options.businessAddress,
       formattedDateTime: notification.formattedDateTime,
@@ -78,6 +87,8 @@ export class EmailBookingNotifier implements BookingNotifier {
       clientEmail: notification.clientEmail,
       clientPhone: notification.clientPhone,
       barberName: notification.barberName,
+      serviceName: notification.serviceName,
+      priceLabel: formatPrice(notification.price),
       formattedDateTime: notification.formattedDateTime,
     };
 
@@ -109,9 +120,10 @@ export class EmailBookingNotifier implements BookingNotifier {
       uid: `appointment-${notification.appointmentId}@barbershop-booking`,
       start: notification.startsAt,
       end: notification.endsAt,
-      summary: `${notification.clientName} — ${notification.barberName}`,
+      summary: `${notification.serviceName}: ${notification.clientName} — ${notification.barberName}`,
       description: [
         `Cliente: ${notification.clientName}`,
+        `Servicio: ${notification.serviceName} (${formatPrice(notification.price)}, en efectivo)`,
         `Teléfono: ${notification.clientPhone}`,
         `Email: ${notification.clientEmail}`,
         `Barbero: ${notification.barberName}`,

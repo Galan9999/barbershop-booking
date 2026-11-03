@@ -18,6 +18,7 @@ const source = readFileSync(TEMPLATE_PATH, 'utf8');
 const executable = source
   .replace(/export interface [\s\S]*?\n}\n/g, '')
   .replace(/: ConfirmationEmailData/g, '')
+  .replace(/: string \| undefined/g, '')
   .replace(/: string/g, '')
   .replace(/export function/g, 'function');
 
@@ -27,8 +28,12 @@ const template = new Function(
 
 const sample = {
   clientName: 'Carles Galan',
-  barberName: 'Carlos',
-  businessName: 'Barbería Central',
+  barberName: 'Armando',
+  serviceName: 'Corte y barba',
+  priceLabel: '30 €',
+  paymentNote: 'Se paga en efectivo en la barbería.',
+  businessPhone: '931 92 40 60',
+  businessName: 'Britez',
   businessAddress: 'Calle Mayor 1, Madrid',
   formattedDateTime: 'miércoles, 11 de noviembre de 2026, 11:00',
   googleCalendarUrl: 'https://calendar.google.com/calendar/render?action=TEMPLATE',
