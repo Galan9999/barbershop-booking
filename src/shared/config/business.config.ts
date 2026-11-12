@@ -52,6 +52,8 @@ const DEFAULT_OPENING_HOURS = {
 /** What a client can book, and how long each one takes. */
 const DEFAULT_SERVICES = [
   { id: 'haircut', label: 'Corte de pelo', minutes: 30, price: 15 },
+  { id: 'retired', label: 'Jubilado', minutes: 30, price: 12 },
+  { id: 'child', label: 'Niño', minutes: 30, price: 10 },
   { id: 'beard', label: 'Barba', minutes: 30, price: 15 },
   { id: 'haircut_beard', label: 'Corte y barba', minutes: 60, price: 30 },
 ];

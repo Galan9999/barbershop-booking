@@ -1,4 +1,4 @@
-import { IconMoustache, IconScissors, IconSparkles, type Icon } from '@tabler/icons-react';
+import { IconMoodKid, IconMoustache, IconOld, IconScissors, IconSparkles, type Icon } from '@tabler/icons-react';
 
 /**
  * Pictograms for the default service ids. Services are configurable, so an id
@@ -6,6 +6,8 @@ import { IconMoustache, IconScissors, IconSparkles, type Icon } from '@tabler/ic
  */
 const ICONS_BY_SERVICE: Record<string, Icon[]> = {
   haircut: [IconScissors],
+  retired: [IconOld],
+  child: [IconMoodKid],
   beard: [IconMoustache],
   haircut_beard: [IconScissors, IconMoustache],
 };

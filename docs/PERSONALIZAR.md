@@ -50,7 +50,7 @@ Tiene que ir en una sola línea. Las horas en formato `HH:mm` de 24 horas.
 minutos y su precio en euros. JSON en una sola línea. Por defecto:
 
 ```json
-[{"id":"haircut","label":"Corte de pelo","minutes":30,"price":15},{"id":"beard","label":"Barba","minutes":30,"price":15},{"id":"haircut_beard","label":"Corte y barba","minutes":60,"price":30}]
+[{"id":"haircut","label":"Corte de pelo","minutes":30,"price":15},{"id":"retired","label":"Jubilado","minutes":30,"price":12},{"id":"child","label":"Niño","minutes":30,"price":10},{"id":"beard","label":"Barba","minutes":30,"price":15},{"id":"haircut_beard","label":"Corte y barba","minutes":60,"price":30}]
 ```
 
 Cada duración debe ser múltiplo de `BUSINESS_SLOT_MINUTES`, o la rejilla dejaría
